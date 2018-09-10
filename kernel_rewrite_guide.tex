@@ -1,0 +1,108 @@
+\section{Parallelisation using the library}
+
+We implemented a library to automatically parallelise existing algorithms
+requiring only minimal modifications from the part of the user. What follows is
+a tutorial to using the library, to give you an idea of how general the
+necessary modifications are.
+
+We followed a similar path to that of the OP-DSL family, only our ``DSL'' is so
+simple that it can be implemented using a few macro functions, and we did not
+use a source to source translator.
+
+Supplying the algorithm to the library is done by modifying the
+\texttt{skeleton.hpp} and \texttt{skeleton\_func.hpp} files in the
+\texttt{kernels} directory. All coding is done in the C++ language.
+
+\subsection{User function}
+
+The body of the parallel loop: the user function is defined using the
+\lstinline!USER_FUNCTION_SIGNATURE! macro in the modified
+\texttt{skeleton\_func.hpp} file. It can then call further inline functions.
+
+It will be passed pointers to the first indirect and direct data it accesses and
+also the corresponding two strides. This way, it can for example access the ith
+component of the first indirect data point by calling
+\lstinline!indirect_data1[i * indirect_stride]!.
+
+The address of the output is also supplied, this is where the calculated
+indirect increment is placed. Only the increments are returned to allow
+controlled write-back of the results in different parallelisation methods.
+
+All of the pointers should be marked with the \lstinline!RESTRICT! macro that
+signals to the compiler that there is no overlap between the data accessed
+through these pointers.
+
+\subsection{Parallelisation administration}
+
+Before calling the user function, some administration overhead is needed, such
+as typecasting and extracting pointers from arrays, calculating the iteration
+variable and caching; this is implemented by modifying the
+\texttt{skeleton\_func.hpp}.
+
+The name of the file, the header guard and the enclosing namespace should be
+modified to something more descriptive of the application.
+
+It is good practice to extract constants such as the dimension of the mesh and
+the number of components in the indirect and direct data points, these should be
+defined at the top of the namespace.
+
+The different parallelisation methods (different kernels) are defined in
+different structs, all having one static \lstinline!call! method that will be
+called by the library. This has a boolean template parameter that is
+\lstinline!true! if the indirect data is in Struct of Arrays layout (see Section
+\ref{aos-to-soa}). The direct data is always in SoA layout.
+
+This method has arguments for the indirect input, indirect output, the directly
+accessed data points, the mappings. These pointers are of type
+\lstinline!void**! (array of arrays structure), except for the mappings that are
+\lstinline!std::uint32_t!. The different arrays should be typecast to the
+appropriate types. There should also be a local array for the increments.
+
+All kernels have different additional parameters. The sequential and OpenMP
+kernels have the iteration variable and the strides. With all these, the user
+function (\lstinline!user_func_host!) can be called, then the results should be
+written back to the main memory.
+
+The kernels running on the GPU have the same API as before, but the actual code
+is extracted into a separate function because CUDA does not support using a
+static method as kernel.
+
+The kernel that runs on the GPU using the global colouring method is almost the
+same as the sequential, but the iteration variable can be extracted from the
+CUDA backend, hence the number of active threads (the number of threads that
+should do anything) are passed instead.  After checking that the current thread
+id is less than the number of active threads, it proceeds as before, calling the
+GPU version of the user function (\lstinline!user_func_gpu!).
+
+The hierarchical kernel (the kernel that uses the hierarchical colouring method
+and caches into shared memory) has also as parameters the list of indirect data
+points to be cached (in Compressed Sparse Row format), the colours of the
+threads, the number of thread colours and the offsets of the blocks (because the
+variable block size).
+
+The block offsets should be used to calculate the iteration variable, so instead
+of \lstinline!blockDim.x * blockIdx.x + threadIdx.x!, it becomes
+\lstinline!block_offsets[blockIdx.x] + threadIdx.x!.
+
+The skeleton for the cache-in and cache-out code is composed of nested
+conditionals that depend on the type of the data. Since the user knows the type,
+the structure can be simplified by removing any unneeded branch. Otherwise, only
+the variable names should be changed.
+
+The computation code is similar to the sequential and global kernels, only the
+write-back of the increments is done in two steps: first the shared memory is
+cleared, then, in a for loop iterating over the thread colours, the shared
+memory is updated by the increments.
+
+This is then written back to global memory.
+
+\subsection{Using the library}
+
+After the implementation of the algorithm, the library will take care of the
+parallelisation.
+
+The data and mappings is read from specified input streams. To call the loop,
+the user calls on of the \lstinline!loopCPUCellCentred!,
+\lstinline!loopCPUCellCentredOMP!, \lstinline!loopGPUCellCentred!,
+\lstinline!loopGPUHierarchical! methods of the \lstinline!Problem! class. The
+have a template parameter that is the struct implementing the kernel code.

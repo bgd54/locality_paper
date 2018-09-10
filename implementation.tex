@@ -1,0 +1,107 @@
+When implementing the library, the goal was to minimise the need for the users
+to modify their computation algorithms.
+
+\subsection{User kernels}
+
+The concept of a computation is in the form of a loop (or kernel) body. The same
+code can be used as in the serial algorithm, with the restrictions described in
+Section \ref{unstructured-meshes} and with the modification that, since the data
+layout is not necessarily the usual AoS, the accesses need to use the stride
+parameters (supplied to the kernel by the library) that are defined to be the
+distance between two consecutive data component (e.g. this is $1$ in the case of
+AoS).
+
+Four types of loops are supported: one serial and three parallel. The
+parallelisations are done by (1) OpenMP on the CPU, (2) CUDA with global
+colouring and (3) CUDA using the shared memory apporach with hierarchical
+colouring on the GPU. The CPU versions are not optimised and are only there for
+testing and verification purposes.
+
+The user kernel consists of two main levels. In the first, the pointers to the
+data arrays are acquired, typecast and the result is written back into global
+(GPU or CPU) memory. This is similar in the differently parallelised loops (e.g.
+there is usually no difference between the serial and the OpenMP versions), but
+there are small variations in the use of GPU shared memory, the synchronisation
+steps and the calculation of the loop variable. (By loop variable, we mean the
+index from the from-set.) In our current implementation, the user creates this
+level from provided templates, but this can be easily automated by means of a
+source-to-source translator tool. The second level is the calculation itself
+that should be the same for all loop forms.
+
+The data will be automatically copied to the device before the beginning of the
+loop when running on the GPU, and the result will be copied back to the host
+after. The pointers supplied to the user kernel also point to the location in
+the appropriate address space.
+
+The directly accessed data is always in SoA form, while the layout of the
+indirectly accessed data is a user supplied compile time parameter. The shared
+memory in our kernels is in SoA form, but that is in the hand of the user. The
+layout of the mappings is AoS, except when using hierarchical colouring.
+
+The synchronisation is done by the library using multiple kernel launches in the
+case of OpenMP and global colouring. The hierarchical colouring has some
+additional synchronisation steps, as described by Algorithm \ref{code:shared} in
+Section \ref{shared-memory-approach}.
+
+\subsection{Execution planning}
+
+To avoid data races in the parallel loops, we colour the elements to avoid data
+races. Two kinds of colouring algorithms is used: global colouring is used for
+the OpenMP and the first CUDA parallelisation, while hierarchical or two-layer
+colouring is used for the shared memory approach.
+
+The global colouring is a direct generalisation of the greedy graph colouring
+algorithm: for all elements of the from-set, its colour will be one of those
+that are used but none of its corresponding indirect points have. The function
+that chooses from the possible colours is a parameter; in the OpenMP and global
+colouring parallelisations, the colour with the least amount of from-set
+elements assigned to it (so far) is chosen.
+
+The threads with different colours are started in different kernel launches. The
+mappings and the direct accessed data arrays are reordered according to their
+colour. This avoids introducing another indirection (which would map from their
+index in the current colour to the actual from-set element that it should be
+working on).
+
+The hierarchical colouring reorders the threads according to the given partition
+and maps the threads to blocks. The block sizes are limited by a parameter
+(given by the user), if one block in the partition is larger, it is divided into
+two.
+
+The same algorithm described above is then used to colour the thread blocks.
+Within the blocks we use heuristic of ordering the threads by removing the one
+with the minimum degree, placing it last in the ordering, then recursively
+ordering the other threads.
+
+After colouring the threads are sorted according to their colour to reduce warp
+divergence, as described in Section \ref{optimisations}.
+
+The mappings and the direct accessed data are transformed into SoA layout to
+increase spatial locality. Similarly to the global colouring, these are then
+reordered according so they can be directly indexed by the loop variable.
+
+\subsubsection{Reordering}
+
+Before the execution of the loop an optional step is the reordering of from- or
+to-set elements using the GPS or the partitioning algorithms described in
+Section \ref{increasing-data-reuse}.
+
+We use the Scotch library\cite{scotch} for the GPS algorithm, and the
+METIS\cite{metis} library for the multilevel k-way partitioning algorithm (using
+64 bit integers for indices). We also tried the recursive bisection algorithm in
+the METIS library, but the result was significantly worse, as well as the
+partitioning algorithm in the Scotch library, but that failed to stay within
+tolerance (and half of the blocks in the partition were empty, others were
+larger then requested).
+
+It must be noted that these algorithms were developed for distributing workloads
+on computing clusters that typically have much larger block size to total size
+ratio. This also caused the reordering (partitioning) phase to be quite long:
+even minutes; but this is a one-off cost: the reordering can be saved from the
+library and reused many times later. Further improvement could be achieved by
+using the parallel versions of the METIS library: ParMETIS\cite{parmetis} and
+the alpha version mt-Metis\cite{mtmetis} libraries. Partitioning algorithms
+targeting specifically small partition sizes required for CUDA thread blocks are
+a target of future research.
+
+% vim:set et sts=2 sw=2 ts=2 tw=80:

@@ -1,0 +1,4 @@
+* We load data into shared memory and use hierarchical colouring to avoid data races.
+* We reorder data and operations using partitioning to increase data reuse.
+* We implement a standalone library as proof of concept.
+* We validate our algorithms on several representative applications.

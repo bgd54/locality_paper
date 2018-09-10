@@ -1,0 +1,102 @@
+\subsubsection{Airfoil}
+Airfoil is a benchmark application, representative of
+large industrial Finite Volume CFD applications. It is a non-linear 2D inviscid
+airfoil code that uses an unstructured grid and a finite-volume discretisation
+to solve the 2D Euler equations using a scalar numerical dissipation. The
+algorithm iterates towards the steady state solution, in each iteration using a
+control volume approach, meaning the change in the mass of a cell is equal to
+the net flux along the four edges of the cell, which requires indirect
+connections between cells and edges. Airfoil is implemented using the OP2 domain
+specific language \cite{op2}, where two versions exist, one implemented with
+OP2's C/C++ API and the other using OP2's Fortran API
+\cite{giles2012op2,op2-repo}.
+
+The application consists of five parallel loops: \textbf{save\_soln},
+\textbf{adt\_calc}, \textbf{res\_calc}, \textbf{bres\_calc} and \textbf{update}.
+In our work we focus on \textbf{res\_calc} since it has indirect increments and
+about the 70\% of the time is spent in this kernel on GPUs with global
+colouring.  The is the most complex loop with both indirect reads and writes; it
+iterates through edges, and computes the flux through them. It is called 2000
+times during the total execution of the application and performs about 100
+floating-point operations per mesh edge.
+\\
+ The tests are executed on a mesh containing 2.8 million cells.
+
+\subsubsection{Volna}
+Volna is a shallow water simulation capable of handling the complete life-cycle
+of a tsunami (generation, propagation and run-up along the coast)
+\cite{dutykh2011volna}. The simulation algorithm works on unstructured
+triangular meshes and uses the finite volume method. Volna is written in C/C++
+and converted to use the OP2 library\cite{op2}. For Volna top three kernels
+where most time is spent: \textbf{computeFluxes}, \textbf{SpaceDiscretization}
+and \textbf{NumericalFluxes}. We focus on the \textbf{SpaceDiscretization}
+kernel since it has indirect increments and the 60\% of the time spent inside
+this step on GPU with global colouring. 
+
+Tests are executed in single precision, on a mesh containing 2.4 million
+triangular cells, simulating a tsunami run-up to the US pacific coast. The
+kernel itself iterates over the edges and increments the cells.
+
+\subsubsection{BookLeaf}
+BookLeaf is a 2D unstructured mesh Lagrangian hydrodynamics application from the
+UK Mini-App Consortium \cite{uk-mac}. It uses a low order finite element method
+with an arbitrary Lagrangian-Eulerian method.  Bookleaf is written entirely in
+Fortran 90 and has been ported to use the OP2 API and library. Bookleaf has a
+large number of kernels with different access patterns such as indirect
+increments similar to increments inside \textbf{res\_calc} in Airfoil. For
+testing we used the SOD testcase with a 4 million element mesh. The top three
+kernels with the highest runtimes are \textbf{getq\_christiensen1},
+\textbf{getacc\_scatter}, \textbf{gather}. Among these there is only
+one kernel (\textbf{getacc\_scatter}) with indirect increments so we tested our
+optimisations on this kernel.
+
+\subsubsection{MiniAero}\label{sec:mini-aero-summary}
+MiniAero \cite{miniaero} is a mini-application for the evaulation of programming
+models and hardware for next generation platforms from the Mantevo suite
+\cite{heroux2009improving}. MiniAero is an explicit (using 4th order
+Runge-Kutta) unstructured finite volume code that solves the compressible
+Navier-Stokes equations. Both inviscid and viscous terms are included. The
+viscous terms can be optionally included or excluded. For miniAero meshes are
+created in code and are simple 3D hex8 meshes. These meshes are generated on the
+CPU and then moved to the device. While the meshes generated in code are
+structured, the code itself uses unstructured mesh data structures and access
+patterns. This mini-application uses the Kokkos library
+\cite{CarterEdwards20143202}.
+
+For miniAero we tested the \textbf{compute\_face\_flux} kernel that computes the
+flux contributions of the faces and increments it with the appropriate cell flux
+values. The original code (depending on a compile time parameter) either uses
+the auxiliary \textbf{apply\_cell\_flux} kernel that does the actual
+incrementing by gathering the intermediate results from a large temporary array,
+or uses atomics to do it within the kernel. Both the atomics and the work of the
+auxiliary kernel was substituted in our code by colouring.
+
+\subsubsection{Lulesh}\label{sec:lulesh-summary}
+Livermore Unstructured Lagrangian Explicit Shock Hydrodynamics (LULESH,
+\cite{LULESH2:changes}) represents a typical hydrocode representing the Shock
+Hydrodynamics Challenge Problem that originally defined and implemented by
+Lawrence Livermore National Lab as one of five challenge problems in the DARPA
+UHPC program and has since become a widely studied proxy application in DOE
+co-design efforts for exascale. 
+
+LULESH is a highly simplified application, hard-coded to only solve a simple
+Sedov blast problem that has an analytic solution \cite{LULESH:spec} – but
+represents the numerical algorithms, data motion, and programming style typical
+in scientific C or C++ based applications at the Lawrence Livermore National
+Laboratory. LULESH approximates the hydrodynamics equations discretely by
+partitioning the spatial problem domain into a collection of volumetric elements
+defined by a mesh.
+
+Like miniAero, the mesh itself is structured (and generated in the code), but
+the algorithm doesn't take this into account and accesses the data through an
+eight-dimensional mapping for the hex8 (brick) elements. In our measurements, we
+used a mesh where the the number of elements (from-set) was $4913000$ and the
+number of nodes (to-set) $5000211$.
+
+For Lulesh, we tested the \textbf{IntegrateStressForElems} kernel that
+calculates the forces in the nodes. The original CUDA version of the code
+contracted this kernel with \textbf{CalcFBHourglassForceForElems}; the only
+modifications we did to this code for our measurements is to remove these parts
+from the kernel.
+
+% vim:set et sw=2 ts=2 tw=80:

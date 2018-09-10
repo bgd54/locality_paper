@@ -1,0 +1,103 @@
+\documentclass[number]{elsarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{subfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{float}
+\usepackage{floatpag}
+\usepackage{url}
+
+\usepackage{setspace}
+\doublespacing
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\journal{Journal of Parallel and Distributed Computing}
+
+\begin{document}
+
+\begin{frontmatter}
+
+  \title{Improving Locality of Unstructured Mesh Algorithms on GPUs}
+
+  \author[1]{András Attila Sulyok\corref{corres}}
+  \ead{sulyok.andras.attila@hallgato.ppke.hu}
+  \author[1]{Gábor Dániel Balogh}
+  \author[1]{István Zoltán Reguly}
+  \author[2]{Gihan R Mudalige}
+  \address[1]{
+    Faculty of Information Technology and Bionics,
+    Pázmány Péter Catholic University,
+    Hungary
+  }
+  \address[2]{
+    Department of Computer Science,
+    University of Warwick,
+    United Kingdom
+  }
+  \cortext[corres]{Corresponding author}
+
+  \begin{abstract}
+    To most efficiently utilize modern parallel architectures, the memory access
+    patterns of algorithms must make heavy use of the cache architecture:
+    successively accessed data must be close in memory (spatial locality) and
+    one piece of data must be reused as many times as possible (temporal
+    locality).
+
+    Unstructured mesh algorithms are notoriously difficult in this sense,
+    especially due to computations that indirectly modify data, leading to race
+    conditions. In this work we address this problem through a number of
+    optimisations on GPUs, specifically the use of the shared memory and a
+    two-layered colouring strategy to cache the data. We also look at different
+    block layouts to analyse the trade-off between data reuse and the amount of
+    synchronisation.
+
+    We developed a standalone library that can transparently reorder the
+    operations done and data accessed by a kernel, without modifications to the
+    algorithm by the user. Using this, we performed measurements on relevant
+    scientific kernels from different applications, such as Airfoil, Volna,
+    Bookleaf, Lulesh and miniAero; using Nvidia Pascal and Volta GPUs. We
+    observed significant speedups ($1.2\text{--}2.5\times$) compared to the
+    original codes.
+  \end{abstract}
+
+  \begin{keyword}
+    finite volume \sep finite element \sep race condition \sep GPU
+  \end{keyword}
+
+\end{frontmatter}
+
+
+\input{content}
+
+\section*{Acknowledgements}
+This paper was supported by the J\'anos B\'olyai Research Scholarship of the
+Hungarian Academy of Sciences. The authors would like to acknowledge the use of
+the University of Oxford Advanced Research Computing (ARC) facility in carrying
+out this work \url{http://dx.doi.org/10.5281/zenodo.22558}. The research has
+been supported by the European Union, co-financed by the European Social Fund
+(EFOP-3.6.2-16-2017-00013).
+%
+% ---- Bibliography ----
+%
+\bibliographystyle{elsarticle-num}
+\bibliography{bibliography}
+
+%
+% ---- Appendix ----
+%
+\appendix
+
+\input{kernel_rewrite_guide.tex}
+
+\end{document}
+\endinput
+
+% vim:set et sw=2 ts=2 tw=80:
