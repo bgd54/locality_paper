@@ -13,7 +13,7 @@ AoS).
 
 Four types of loops are supported: one serial and three parallel. The
 parallelisations are done by (1) OpenMP on the CPU, (2) CUDA with global
-colouring and (3) CUDA using the shared memory apporach with hierarchical
+colouring and (3) CUDA using the shared memory approach with hierarchical
 colouring on the GPU. The CPU versions are not optimised and are only there for
 testing and verification purposes.
 
@@ -46,7 +46,7 @@ Section \ref{shared-memory-approach}.
 \subsection{Execution planning}
 
 To avoid data races in the parallel loops, we colour the elements to avoid data
-races. Two kinds of colouring algorithms is used: global colouring is used for
+races. Two kinds of colouring algorithms are used: global colouring is used for
 the OpenMP and the first CUDA parallelisation, while hierarchical or two-layer
 colouring is used for the shared memory approach.
 
