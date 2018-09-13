@@ -28,7 +28,7 @@ P100, however, the results were similar on the newer architecture.
   Max Threads / Multiprocessor		& 2048 & 2048	\\ \hline
   Max Thread Blocks / Multiprocessor 	& 32 & 32	\\ \hline
   Max Registers / Thread& 255 & 255	\\ \hline
-  Shared Memory Size / SM	& 64 KB & 64 KB	\\ \hline
+  Shared Memory Size / SM	& 64 KB & 96 KB	\\ \hline
   Max 32 - bit Registers / SM			& 65536 & 65536\\ \hline
   Memory Size							& 16 GB	& 16 GB\\ \hline
   L2 Cache Size						& 4096 KB & 6144 KB\\ \hline
@@ -48,9 +48,9 @@ iterations.
 
 We also collected other relevant metrics that describe the observations, such as 
 \begin{itemize}
-  \item data reuse factor (the average number of time an indirectly accessed
+  \item data reuse factor (the average number of times an indirectly accessed
     data point is accessed),
-  \item the number of read/write transactions from/to grobal memory, which is
+  \item the number of read/write transactions from/to global memory, which is
     closely related to the data reuse factor but is affected by memory access
     patterns, and therefore cache line utilisation,
   \item the occupancy reflecting the number of threads resident on the SM versus
@@ -67,7 +67,7 @@ We also collected other relevant metrics that describe the observations, such as
     to the maximum number of threads per warp).
 \end{itemize}
 Studying performance and these metrics help us understand and explain why
-ceratin variants are better than others.
+certain variants are better than others.
 
 \subsection{Measurement results}\label{measurement-results}
 
