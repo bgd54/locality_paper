@@ -3,19 +3,21 @@ to modify their computation algorithms.
 
 \subsection{User kernels}
 
-The concept of a computation is in the form of a loop (or kernel) body. The same
-code can be used as in the serial algorithm, with the restrictions described in
-Section \ref{unstructured-meshes} and with the modification that, since the data
-layout is not necessarily the usual AoS, the accesses need to use the stride
-parameters (supplied to the kernel by the library) that are defined to be the
-distance between two consecutive data component (e.g. this is $1$ in the case of
-AoS).
+The concept of a computation is in the form of a loop (or kernel) body. The loop
+body is written by the user from a skeleton code, the library only calls it. The
+same code can be used as in the serial algorithm, with the restrictions
+described in Section \ref{unstructured-meshes} and with the modification that,
+since the data layout is not necessarily the usual AoS, the accesses need to use
+the stride parameters (supplied to the kernel by the library) that are defined
+to be the distance between two consecutive data component (e.g. this will be $1$
+in the case of AoS).
 
 Four types of loops are supported: one serial and three parallel. The
 parallelisations are done by (1) OpenMP on the CPU, (2) CUDA with global
 colouring and (3) CUDA using the shared memory apporach with hierarchical
 colouring on the GPU. The CPU versions are not optimised and are only there for
-testing and verification purposes.
+testing and verification purposes. The user of the library can choose which of
+these to apply.
 
 The user kernel consists of two main levels. In the first, the pointers to the
 data arrays are acquired, typecast and the result is written back into global
@@ -29,19 +31,20 @@ source-to-source translator tool. The second level is the calculation itself
 that should be the same for all loop forms.
 
 The data will be automatically copied to the device before the beginning of the
-loop when running on the GPU, and the result will be copied back to the host
-after. The pointers supplied to the user kernel also point to the location in
-the appropriate address space.
+loop when the program is running on the GPU, and the result will be copied back
+to the host after. The pointers supplied to the user kernel also point to the
+location in the appropriate address space.
 
 The directly accessed data is always in SoA form, while the layout of the
-indirectly accessed data is a user supplied compile time parameter. The shared
-memory in our kernels is in SoA form, but that is in the hand of the user. The
-layout of the mappings is AoS, except when using hierarchical colouring.
+indirectly accessed data is a user supplied compile time parameter. The layout
+of the shared memory is determined by the user; it is SoA in the kernels in our
+measurements. The layout of the mappings is AoS for all the parallelisation
+methods except hierarchical colouring.
 
-The synchronisation is done by the library using multiple kernel launches in the
-case of OpenMP and global colouring. The hierarchical colouring has some
-additional synchronisation steps, as described by Algorithm \ref{code:shared} in
-Section \ref{shared-memory-approach}.
+In the case of OpenMP and global colouring, the parallel execution is
+synchronised by the library using multiple kernel launches. The hierarchical
+colouring has some additional synchronisation steps, as described by Algorithm
+\ref{code:shared} in Section \ref{shared-memory-approach}.
 
 \subsection{Execution planning}
 
@@ -59,19 +62,19 @@ elements assigned to it (so far) is chosen.
 
 The threads with different colours are started in different kernel launches. The
 mappings and the direct accessed data arrays are reordered according to their
-colour. This avoids introducing another indirection (which would map from their
+colour, so there is no need for another indirection (which would map from their
 index in the current colour to the actual from-set element that it should be
 working on).
 
-The hierarchical colouring reorders the threads according to the given partition
-and maps the threads to blocks. The block sizes are limited by a parameter
-(given by the user), if one block in the partition is larger, it is divided into
-two.
+If partitioning is used in the preprocessing step, the hierarchical colouring
+reorders the threads according to that and maps the threads to blocks. The block
+sizes are limited by a parameter (given by the user), and if the partitioning
+algorithm produced a block that is larger, it is divided into two.
 
-The same algorithm described above is then used to colour the thread blocks.
-Within the blocks we use heuristic of ordering the threads by removing the one
-with the minimum degree, placing it last in the ordering, then recursively
-ordering the other threads.
+The same greedy colouring algorithm described above is then used to colour the
+thread blocks. Within the blocks we use the heuristics of ordering the threads
+by removing the one with the minimum degree, placing it last in the ordering,
+then recursively ordering the other threads.
 
 After colouring the threads are sorted according to their colour to reduce warp
 divergence, as described in Section \ref{optimisations}.
@@ -82,9 +85,10 @@ reordered according so they can be directly indexed by the loop variable.
 
 \subsubsection{Reordering}
 
-Before the execution of the loop an optional step is the reordering of from- or
-to-set elements using the GPS or the partitioning algorithms described in
-Section \ref{increasing-data-reuse}.
+Before the execution of the loop an optional preprocessing step is to either
+reorder the from- or to-set elements using the GPS algorithm, or map the threads
+to blocks by a partitioning algorithm described in Section
+\ref{increasing-data-reuse}.
 
 We use the Scotch library\cite{scotch} for the GPS algorithm, and the
 METIS\cite{metis} library for the multilevel k-way partitioning algorithm (using
