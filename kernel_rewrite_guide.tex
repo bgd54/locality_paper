@@ -1,9 +1,7 @@
-\section{Parallelisation using the library}
+\subsection{Workflow}
 
-We implemented a library to automatically parallelise existing algorithms
-requiring only minimal modifications from the part of the user. What follows is
-a tutorial to using the library, to give you an idea of how general the
-necessary modifications are.
+What follows is a tutorial to using the library, to give you an idea of how
+general the necessary modifications are.
 
 We followed a similar path to that of the OP-DSL family, only our ``DSL'' is so
 simple that it can be implemented using a few macro functions, and we did not
@@ -13,7 +11,7 @@ Supplying the algorithm to the library is done by modifying the
 \texttt{skeleton.hpp} and \texttt{skeleton\_func.hpp} files in the
 \texttt{kernels} directory. All coding is done in the C++ language.
 
-\subsection{User function}
+\subsubsection{User function}
 
 The body of the parallel loop: the user function is defined using the
 \lstinline!USER_FUNCTION_SIGNATURE! macro in the modified
@@ -32,7 +30,7 @@ All of the pointers should be marked with the \lstinline!RESTRICT! macro that
 signals to the compiler that there is no overlap between the data accessed
 through these pointers.
 
-\subsection{Parallelisation administration}
+\subsubsection{Parallelisation administration}
 
 Before calling the user function, some administration overhead is needed, such
 as typecasting and extracting pointers from arrays, calculating the iteration
@@ -96,7 +94,7 @@ memory is updated by the increments.
 
 This is then written back to global memory.
 
-\subsection{Using the library}
+\subsubsection{Using the library}
 
 After the implementation of the algorithm, the library will take care of the
 parallelisation.
