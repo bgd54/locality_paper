@@ -276,20 +276,25 @@ partitions using the recursive bisection algorithm, then, while progressively
 uncoarsening the graph, locally optimises the cuts.
 
 The algorithm tries to maintain equal block sizes in the resulting partition,
-however, there are some differences. A tuning parameter is the load imbalance
-factor, which can be used to specify the tolerance for this difference. (It is
-called load imbalance because METIS is originally used for distributing
-computation, ie. load, in a distributed memory system.) It is defined as $l =
-n\max_j \left\{ size(B_j) \right\}$, where $n$ is the number of blocks and
-$size(B_j)$ is the size of the $j$th block. Due to the local optimisation in the
-uncoarsening phase, it is impractical to set this parameter to $1$ (meaning the
-block sizes must be exactly the same). We found that a tolerance of $1.001$
-works well in practice for our needs.
+however, it is not always possible because of the way the it works. Since CUDA
+launches threadblocks with equal size, this must be the maximum of the block
+sizes in the created partition. This means that some threads do not work, and
+the occupancy is lower.
+
+A tuning parameter is the load imbalance factor, which can be used to specify
+the tolerance for this difference. (It is called load imbalance because METIS is
+originally used for distributing computation, ie. load, in a distributed memory
+system.) It is defined as $l = n\max_j \left\{\mathrm{size}(B_j) \right\}$,
+where $n$ is the number of blocks and $\mathrm{size}(B_j)$ is the size of the
+$j$th block. Due to the local optimisation in the uncoarsening phase, it is
+impractical to set this parameter to $1$ (meaning the block sizes must be
+exactly the same). We found that a tolerance of $1.001$ works well in practice
+for our needs.
 
 In our library, the block size is a tuning parameter, which specifies the actual
-block size of the launched GPU kernels, naturally, the number of working threads
-cannot exceed it. Therefore, we calculate a new block size ($S'$) and tolerance
-($l'$) with margins for the imbalance:
+block size of the launched GPU kernels, therefore the number of working threads
+cannot exceed it. To account for this in partitioning, we calculate a new block
+size ($S'$) and tolerance ($l'$) with margins for the imbalance:
 \begin{align}
   S' &= \left\lfloor \frac{S}{l} \right\rfloor \\
   l' &= \frac{S + \epsilon}{S'},
@@ -298,9 +303,11 @@ where $S$ is the original block size, $l$ is the original load imbalance
 parameter and $\epsilon$ is an empirical tuning parameter to create as large
 blocks (within the limit) as possible.
 
-The variable number of working threads also incurs a slight overhead of two
-global loads for each thread: this number and the starting offset in the arrays.
-We found this overhead to be minimal in practice.
+This support for a variable number of working threads (ie. to determine if the
+current thread should do any actual computation) also incurs a slight overhead
+of two global loads for each thread: this number and the starting offset in the
+arrays (which are now stored in a CSR format). We found this overhead to be
+minimal in practice.
 
 Due to the way global loads and stores work on the GPU, what actually affects
 performance is not the number of data points accessed, but rather the number of
