@@ -178,6 +178,12 @@ needed, which leads to greater occupancy.
 We have looked at two different approaches: the first is the sparse matrix
 bandwidth reducing Gibbs-Poole-Stockmeyer algorithm, the second is partitioning.
 
+In our measurements, we only consider one kernel and reorder accordingly. This
+does not affect the performance of direct kernels (kernels in which there is no
+indirect access), and---since data locality loosely corresponds to locality in
+the world of the physical computation being calculated---also helps other
+indirect kernels.
+
 \subsubsection{Gibbs-Poole-Stockmeyer-based reordering}
 
 For serial implementations (typically on CPUs) of computations on graphs, the
