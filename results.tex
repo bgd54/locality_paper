@@ -617,29 +617,30 @@ occupancy is this low.
   \resizebox{\columnwidth}{!}{
   % \begin{tabular}{|R{2.5cm}|cc|c|c|}
     \small
-  \begin{tabular}{|r|cc|c|c|}
+  \begin{tabular}{|r|cc|c|c|c|}
     \hline
-      Reordering  & no & no & partition & partition\\
-      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA\\
-      Block size &           320 & 320 & 320 & 320 \\
+      Reordering  & no & no & partition & partition & original\\
+      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA & SOA\\
+      Block size &           320 & 320 & 320 & 320 & 64\\
       \hline
-                               Bandwidth (GB/s) &   $ 124$ &   $ 168$ &   $ 129$ &   $ 147$\\
-                             Achieved Occupancy &   $0.15$ &   $0.29$ &   $0.15$ &   $0.30$\\
-                      Warp Execution Efficiency &   $  98\%$ &   $  97\%$ &   $  91\%$ &   $  90\%$\\
-        Global Memory Read Transactions (total) &   $33572\text{k}$ &   $35408\text{k}$ &   $22888\text{k}$ &   $25027\text{k}$\\
-       Global Memory Write Transactions (total) &   $12673\text{k}$ &   $12704\text{k}$ &   $ 8047\text{k}$ &   $ 8701\text{k}$\\
-          Issue Stall Reasons (Synchronization) &   $  13\%$ &   $  19\%$ &   $  39\%$ &   $  42\%$\\
-             Issue Stall Reasons (Data Request) &   $  64\%$ &   $  56\%$ &   $  35\%$ &   $  31\%$\\
-                        Number of Block Colours &   $       4$ &   $       4$ &   $      15$ &   $      15$\\
-                                   Reuse Factor &   $     2.6$ &   $     2.6$ &   $     4.8$ &   $     4.8$\\
-                      Average Cache Lines/Block &   $     744$ &   $     747$ &   $     427$ &   $     474$\\
-                       Number of Thread Colours &   $       4$ &   $       4$ &   $    11.6$ &   $    11.6$\\
+                               Bandwidth (GB/s) &   $ 124$ &   $ 168$ &   $ 129$ &   $ 147$ & $97$\\
+                             Achieved Occupancy &   $0.15$ &   $0.29$ &   $0.15$ &   $0.30$ & $0.24$\\
+                      Warp Execution Efficiency &   $  98\%$ &   $  97\%$ &   $ 91\%$ &   $  90\%$ & $100\%$\\
+        Global Memory Read Transactions (total) &   $33572\text{k}$ & $35408\text{k}$ &   $22888\text{k}$ &   $25027\text{k}$  & $16072\text{k}$\\
+       Global Memory Write Transactions (total) &   $12673\text{k}$ & $12704\text{k}$ &   $ 8047\text{k}$ &   $ 8701\text{k}$  & $32689\text{k}$\\
+          Issue Stall Reasons (Synchronization) &   $  13\%$ &   $  19\%$ &   $ 39\%$ &   $  42\%$  & $0\%$\\
+             Issue Stall Reasons (Data Request) &   $  64\%$ &   $  56\%$ &   $ 35\%$ &   $  31\%$  & $26\%$\\
+                        Number of Block Colours &   $       4$ &   $       4$ & $      15$ &   $      15$ & - \\
+                                   Reuse Factor &   $     2.6$ &   $     2.6$ & $     4.8$ &   $     4.8$ & -\\
+                      Average Cache Lines/Block &   $     744$ &   $     747$ & $     427$ &   $     474$  & -\\
+                       Number of Thread Colours &   $       4$ &   $       4$ & $    11.6$ &   $    11.6$  & -\\
 
     \hline
   \end{tabular}
   }
   \caption{Collected performance metrics of the hierarchical colouring
-  implementation of the \textbf{IntegrateStressForElems} kernel.}
+    implementation of the \textbf{IntegrateStressForElems} kernel. The last
+    column is the measured performance of the original code.}
   \label{tab:lulesh_counters_hier}
 \end{table}
 
