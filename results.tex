@@ -759,31 +759,31 @@ reason as in case of LULESH.
   \resizebox{\columnwidth}{!}{
     \small
   % \begin{tabular}{|R{2.5cm}|cc|c|c|}
-  \begin{tabular}{|r|cc|c|c|}
+  \begin{tabular}{|r|cc|c|c|c|}
     \hline
-      Reordering  & GPS & GPS & partition & partition\\
-      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA\\
-      Block size &           128 & 128 & 128 & 128 \\
+      Reordering  & GPS & GPS & partition & partition & original\\
+      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA & SOA\\
+      Block size &           128 & 128 & 128 & 128 & 256\\
       \hline
-                               Bandwidth (GB/s)&    $  67$ &   $ 84$ &   $ 117$
-                               &   $ 113$\\
-                             Achieved Occupancy&    $0.06$ & $0.06$ & $0.12$ & $0.12$\\
-                      Warp Execution Efficiency&    $91\%$ & $84\%$ & $88\%$ & $85\%$\\
-                Global Memory Read Transactions&    $73561\text{k}$ & $82028\text{k}$ & $53403\text{k}$ & $77091\text{k}$ \\
-               Global Memory Write Transactions&    $9153\text{k}$ & $10390\text{k}$ & $6694\text{k}$ & $9008\text{k}$ \\
-          Issue Stall Reasons (Synchronization)&    $4\%$ & $9\%$ & $15\%$ & $21\%$ \\
-             Issue Stall Reasons (Data Request)&    $61\%$ & $35\%$ & $47\%$ & $35\%$ \\
-     Issue Stall Reasons (Execution Dependency)&    $23\%$ & $33\%$ & $23\%$ & $23\%$ \\
-                   FLOP Efficiency(Peak Double)&    $5\%$ & $8\%$ & $10\%$ & $12\%$ \\
-                        Number of Block Colours&    $      18$ &   $      18$ &   $      15$ &   $      15$\\
-                                   Reuse Factor&    $     2.2$ &   $     2.2$ &   $     3.9$ &   $     3.9$\\
-                      Average Cache Lines/Block&    $     452$ &   $     471$ &   $     269$ &   $     344$\\
-                       Number of Thread Colours&    $       3$ &   $       3$ &   $       6$ &   $       6$\\
+                               Bandwidth (GB/s)&    $  67$ &   $ 84$ &   $ 117$ &   $ 113$ & $96$\\
+                             Achieved Occupancy&    $0.06$ & $0.06$ & $0.12$ & $0.12$  & $0.23$\\
+                      Warp Execution Efficiency&    $91\%$ & $84\%$ & $88\%$ & $85\%$  & $91\%$\\
+                Global Memory Read Transactions&    $73561\text{k}$ & $82028\text{k}$ & $53403\text{k}$ & $77091\text{k}$  & $87368\text{k}$\\
+               Global Memory Write Transactions&    $9153\text{k}$ & $10390\text{k}$ & $6694\text{k}$ & $9008\text{k}$ & $5934\text{k}$ \\
+          Issue Stall Reasons (Synchronization)&    $4\%$ & $9\%$ & $15\%$ & $21\%$    & $0\%$ \\
+             Issue Stall Reasons (Data Request)&    $61\%$ & $35\%$ & $47\%$ & $35\%$  & $49\%$\\
+     Issue Stall Reasons (Execution Dependency)&    $23\%$ & $33\%$ & $23\%$ & $23\%$  & $13\%$\\
+                   FLOP Efficiency(Peak Double)&    $5\%$ & $8\%$ & $10\%$ & $12\%$  & $8\%$\\
+                        Number of Block Colours&    $      18$ &   $      18$ & $      15$ &   $      15$  & -\\
+                                   Reuse Factor&    $     2.2$ &   $     2.2$ & $     3.9$ &   $     3.9$  & -\\
+                      Average Cache Lines/Block&    $     452$ &   $     471$ & $     269$ &   $     344$  & -\\
+                       Number of Thread Colours&    $       3$ &   $       3$ & $       6$ &   $       6$  & -\\
     \hline
   \end{tabular}
   }
   \caption{Collected performance metrics of the hierarchical colouring
-  implementation of the \textbf{compute\_face\_flux} kernel.}
+    implementation of the \textbf{compute\_face\_flux} kernel. The last column
+    is the measured performance of the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
