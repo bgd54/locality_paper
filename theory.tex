@@ -52,6 +52,7 @@ themselves.
 
 \subsubsection{Array-of-Structures (AoS) to Structure-of-Arrays (SoA)
 transformation} \label{aos-to-soa}
+
 Because of the lockstep execution, consecutive threads in a warp are reading the
 memory at the same time, hence the layout of the data in the memory is an
 important factor. We used two different layouts in our measurements. The first
@@ -59,7 +60,8 @@ is the Array-of-Structures layout which means that the data associated with one
 element is in consecutive places in the array (and thus in memory). The other
 layout is the Structure-of-Arrays where we store the components of elements
 consecutively e.g.  the first data component of the elements are in the
-beginning of the array followed by the second, etc.\\
+beginning of the array followed by the second, etc.
+
 Although in most cases the SoA gives better performance on GPUs and better
 vectorisation on CPUs, the AoS layout is still commonly used on CPU
 architectures with large caches. In the case of the AoS layout, consecutive
@@ -74,6 +76,9 @@ consecutive threads may not be reading consecutive values in memory, and
 therefore cache line utilisation degrades. The choice of data layout in
 unstructured mesh computations is therefore highly non-trivial, as we show
 later.
+
+In our library, the AoS--SoA transformation is governed by a tunable
+hyperparameter.
 
 \subsection{Shared memory approach}\label{shared-memory-approach}
 
