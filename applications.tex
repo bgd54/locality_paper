@@ -50,32 +50,6 @@ kernels with the highest runtimes are \textbf{getq\_christiensen1},
 one kernel (\textbf{getacc\_scatter}) with indirect increments so we tested our
 optimisations on this kernel.
 
-\subsubsection{miniAero}\label{sec:mini-aero-summary}
-
-miniAero \cite{miniaero} is a mini-application for the evaulation of programming
-models and hardware for next generation platforms from the Mantevo suite
-\cite{heroux2009improving}. MiniAero is an explicit (using 4th order
-Runge-Kutta) unstructured finite volume code that solves the compressible
-Navier-Stokes equations. Both inviscid and viscous terms are included. The
-viscous terms can be optionally included or excluded. For miniAero meshes are
-created in code and are simple 3D hex8 meshes. These meshes are generated on the
-CPU and then moved to the device. While the meshes generated in code are
-structured, the code itself uses unstructured mesh data structures and access
-patterns. This mini-application uses the Kokkos library
-\cite{CarterEdwards20143202}.
-
-For miniAero we tested the \textbf{compute\_face\_flux} kernel that computes the
-flux contributions of the faces and increments it with the appropriate cell flux
-values. The kernel iterates over the faces of the mesh, and accesses the cells
-indirectly. In each iteration, it reads 28 and increments 5 double values from
-each of the 2 indirectly accessed cells, and reads 12 double values directly.
-
-The original code (depending on a compile time parameter) either uses the
-auxiliary \textbf{apply\_cell\_flux} kernel that does the actual incrementing by
-gathering the intermediate results from a large temporary array, or uses atomics
-to do it within the kernel. Both the atomics and the work of the auxiliary
-kernel was substituted in our code by colouring.
-
 \subsubsection{Lulesh}\label{sec:lulesh-summary}
 
 \hyphenation{CalcFBHourglassForceForElems IntegrateStressForElems}
@@ -109,5 +83,31 @@ nodes.
 The original CUDA version of the code contracted this kernel with
 \textbf{CalcFBHourglassForceForElems}; the only modifications we did to this
 code for our measurements is to remove these parts from the kernel.
+
+\subsubsection{miniAero}\label{sec:mini-aero-summary}
+
+miniAero \cite{miniaero} is a mini-application for the evaulation of programming
+models and hardware for next generation platforms from the Mantevo suite
+\cite{heroux2009improving}. MiniAero is an explicit (using 4th order
+Runge-Kutta) unstructured finite volume code that solves the compressible
+Navier-Stokes equations. Both inviscid and viscous terms are included. The
+viscous terms can be optionally included or excluded. For miniAero meshes are
+created in code and are simple 3D hex8 meshes. These meshes are generated on the
+CPU and then moved to the device. While the meshes generated in code are
+structured, the code itself uses unstructured mesh data structures and access
+patterns. This mini-application uses the Kokkos library
+\cite{CarterEdwards20143202}.
+
+For miniAero we tested the \textbf{compute\_face\_flux} kernel that computes the
+flux contributions of the faces and increments it with the appropriate cell flux
+values. The kernel iterates over the faces of the mesh, and accesses the cells
+indirectly. In each iteration, it reads 28 and increments 5 double values from
+each of the 2 indirectly accessed cells, and reads 12 double values directly.
+
+The original code (depending on a compile time parameter) either uses the
+auxiliary \textbf{apply\_cell\_flux} kernel that does the actual incrementing by
+gathering the intermediate results from a large temporary array, or uses atomics
+to do it within the kernel. Both the atomics and the work of the auxiliary
+kernel was substituted in our code by colouring.
 
 % vim:set et sw=2 ts=2 tw=80:
