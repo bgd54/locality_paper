@@ -50,8 +50,9 @@ kernels with the highest runtimes are \textbf{getq\_christiensen1},
 one kernel (\textbf{getacc\_scatter}) with indirect increments so we tested our
 optimisations on this kernel.
 
-\subsubsection{MiniAero}\label{sec:mini-aero-summary}
-MiniAero \cite{miniaero} is a mini-application for the evaulation of programming
+\subsubsection{miniAero}\label{sec:mini-aero-summary}
+
+miniAero \cite{miniaero} is a mini-application for the evaulation of programming
 models and hardware for next generation platforms from the Mantevo suite
 \cite{heroux2009improving}. MiniAero is an explicit (using 4th order
 Runge-Kutta) unstructured finite volume code that solves the compressible
@@ -65,11 +66,15 @@ patterns. This mini-application uses the Kokkos library
 
 For miniAero we tested the \textbf{compute\_face\_flux} kernel that computes the
 flux contributions of the faces and increments it with the appropriate cell flux
-values. The original code (depending on a compile time parameter) either uses
-the auxiliary \textbf{apply\_cell\_flux} kernel that does the actual
-incrementing by gathering the intermediate results from a large temporary array,
-or uses atomics to do it within the kernel. Both the atomics and the work of the
-auxiliary kernel was substituted in our code by colouring.
+values. The kernel iterates over the faces of the mesh, and accesses the cells
+indirectly. In each iteration, it reads 28 and increments 5 double values from
+each of the 2 indirectly accessed cells, and reads 12 double values directly.
+
+The original code (depending on a compile time parameter) either uses the
+auxiliary \textbf{apply\_cell\_flux} kernel that does the actual incrementing by
+gathering the intermediate results from a large temporary array, or uses atomics
+to do it within the kernel. Both the atomics and the work of the auxiliary
+kernel was substituted in our code by colouring.
 
 \subsubsection{Lulesh}\label{sec:lulesh-summary}
 
