@@ -22,37 +22,38 @@ transactions compared to AoS).
   \resizebox{\columnwidth}{!}{
     % TODO either fill in the missing data or undo the whole unification of the
     % two tables
-  \begin{tabular}{|R{3cm}|c|c|c|c||c|c|c|c|}
+  \begin{tabular}{|R{3cm}|c|c|c|c||c|c|c|c||c|}
     \hline
-                       Colouring  & \multicolumn{4}{c||}{Global} & \multicolumn{4}{c|}{Hierarchical} \\
+                       Colouring  & \multicolumn{4}{c||}{Global} & \multicolumn{4}{c||}{Hierarchical} & \begin{tabular}{@{}c@{}}Original \\ Hierarchical\end{tabular}\\
                        \hline
-                      Reordering  & \multicolumn{2}{c|}{none} & GPS & partition & \multicolumn{2}{c|}{no} & \multicolumn{2}{c|}{partition}\\
+                      Reordering  & \multicolumn{2}{c|}{none} & GPS & partition & \multicolumn{2}{c|}{no} & \multicolumn{2}{c||}{partition} & no\\
                       \hline
-               Data layout &    AOS      &   SOA     &     SOA      &    SOA & AOS      &   AOS     &     AOS      &    SOA\\
+               Data layout &    AOS      &   SOA     &     SOA      &    SOA & AOS      &   SOA     &     AOS      &    SOA & SOA\\
                \hline
-                         Bandwidth (GB/s)&  $71$ & $94$ &  $105$&  $67$&    $ 212$ &   $ 227$ &      $ 270$ &   $ 225$\\
+                         Bandwidth (GB/s)&  $71$ & $94$ &  $105$&  $67$&    $ 212$ &   $ 227$ &      $ 270$ &   $ 225$ & $ 233$\\ % 229 with the figure generated thing
                       \hline
-                Achieved Occupancy&  $0.63$ &  $0.45$ &      $0.45$&            $0.45$&    $0.44$ &   $0.52$ &      $0.59$ &   $0.42$\\
+                Achieved Occupancy&  $0.63$ &  $0.45$ &      $0.45$&            $0.45$&    $0.44$ &   $0.52$ &      $0.59$ &   $0.42$ & $0.42$\\
                       \hline
-   Global Memory Read Transactions&  $52424\text{k}$ &  $45781\text{k}$ &      $41246\text{k}$&            $66775\text{k}$&    $21142\text{k}$ &   $21192\text{k}$ &      $13964\text{k}$ &   $14406\text{k}$\\
+   Global Memory Read Transactions&  $52424\text{k}$ &  $45781\text{k}$ &      $41246\text{k}$&            $66775\text{k}$&    $21142\text{k}$ &   $21192\text{k}$ &      $13964\text{k}$ &   $14406\text{k}$&  $21866\text{k}$\\
                       \hline
-  Global Memory Write Transactions&  $14007\text{k}$ &  $14737\text{k}$ &      $13773\text{k}$&            $20733\text{k}$&    $ 5807\text{k}$ &   $ 57883\text{k}$ &      $ 3397\text{k}$ &   $ 3669\text{k}$\\
+  Global Memory Write Transactions&  $14007\text{k}$ &  $14737\text{k}$ &      $13773\text{k}$&            $20733\text{k}$&    $ 5807\text{k}$ &   $ 57883\text{k}$ &      $ 3397\text{k}$ &   $ 3669\text{k}$& $ 6384\text{k}$\\
                       \hline
-                 Number of (Block) Colours&  $5$&  $5$ &      $5$ &            $7$&    $       4$ &   $       5$ &      $       8$ &   $       8$\\
+                 Number of (Block) Colours&  $5$&  $5$ &      $5$ &            $7$&    $       4$ &   $       5$ &      $       8$ &   $       8$ &   $       5$\\
                       \hline
-                       Number of Thread Colours&-&-&-&-&    $       3$ &   $       3$ &      $       4$ &   $       4$\\
+                       Number of Thread Colours&-&-&-&-&    $       3$ &   $       3$ &      $       4$ &   $       4$ &   $       3$\\
                       \hline
-                                   Reuse Factor&-&-&-&-&    $       2$ &   $       2$ &      $     3.6$ &   $     3.6$\\
+                                   Reuse Factor&-&-&-&-&    $       2$ &   $       2$ &      $     3.6$ &   $     3.6$ &   $       2$\\
                       \hline
-          Issue Stall Reasons (Synchronization)&-&-&-&-&    $  11\%$ &   $   9\%$ &      $  14\%$ &   $  14\%$\\
+          Issue Stall Reasons (Synchronization)&-&-&-&-&    $  11\%$ &   $   9\%$ &      $  14\%$ &   $  14\%$ &   $  14\%$\\
                       \hline
-             Issue Stall Reasons (Data Request)&-&-&-&-&    $  69\%$ &   $  68\%$ &      $  61\%$ &   $  63\%$\\
+             Issue Stall Reasons (Data Request)&-&-&-&-&    $  69\%$ &   $  68\%$ &      $  61\%$ &   $  63\%$ &   $  55\%$\\
+             \hline
+             Block Size &\multicolumn{8}{c||}{$480$} &   $128$\\
              \hline
   \end{tabular}
   }
   \caption{Collected performance metrics of the global and hierarchical
-  colouring implementation of the \textbf{res\_calc} kernel. Block size is
-  $480$.}
+  colouring implementation of the \textbf{res\_calc} kernel.}
   \label{tab:airfoil_counters_glob}
 \end{table}
 
@@ -100,7 +101,9 @@ of the stalls were caused by synchronisation, compared to $9\%$.
 This is further illustrated by Figure \ref{fig:airfoil_speedup_large} that shows
 the relative speedup compared to the original OP2 version. In this case, the
 original version also used the shared memory approach, so the performance gain
-is caused by the reordering. 
+is caused by the reordering. In the original version $56\%$ of the total time spent
+in \textbf{res\_calc}, therefore the achieved $1.2$x speedup on \textbf{res\_calc}
+cause about $1.1$x speedup on the whole application.
 
 % airfoil profiler counters {{{ %
 % table hier {{{2 %
@@ -391,30 +394,30 @@ than two times faster than the original OP2 version.
 
 \begin{table}[Htbp]
   \centering
-  % \resizebox{\columnwidth}{!}{
+  \resizebox{\columnwidth}{!}{
   \small
   % \begin{tabular}{|R{5.5cm}|cc|c|c|}
-  \begin{tabular}{|r|cc|c|c|}
+  \begin{tabular}{|r|cc|c|c||c|}
     \hline
-      Reordering  & no & no & partition & partition\\
-      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA\\
-      Block size &           448 & 448 & 448 & 448 \\
+      Reordering  & no & no & partition & partition & original\\
+      Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA      &    SOA\\
+      Block size &           448 & 448 & 448 & 448 & 128\\
       \hline
-                               Bandwidth (GB/s) &   $ 265$ &   $ 241$ &   $ 292$ &   $ 268$\\
-                             Achieved Occupancy &   $0.82$ &   $0.81$ &   $0.80$ &   $0.80$                                                    \\
-                      Warp Execution Efficiency &   $  98\%$ &   $  98\%$ &   $  97\%$ &   $  97\%$                                            \\
-        Global Memory Read Transactions &   $ 9114\text{k}$ &   $ 9166\text{k}$ &   $ 7493\text{k}$ &   $ 7617\text{k}$                \\
-       Global Memory Write Transactions &   $ 2438\text{k}$ &   $ 2512\text{k}$ &   $ 1542\text{k}$ &   $ 1640\text{k}$                \\
-          Issue Stall Reasons (Synchronization) &     $11\%$ &     $12\%$ &    $15\%$ &     $15\%$ \\
-             Issue Stall Reasons (Data Request) &     $51\%$ &     $50\%$ &    $46\%$ &     $46\%$ \\
-                        Number of Block Colours &   $       5$ &   $       5$ &   $       9$ &   $       9$                                    \\
-                                   Reuse factor &   $     1.5$ &   $     1.5$ &   $     2.8$ &   $     2.8$                                    \\
-                       Number of Thread Colours &   $       3$ &   $       3$ &   $       4$ &   $       4$                                    \\
-                      Average cache lines/block &   $     300$ &   $     307$ &   $     165$ &   $     184$                                    \\
+                               Bandwidth (GB/s) &   $ 265$ &   $ 241$ &   $ 292$ &   $ 268$ & $119$\\
+                             Achieved Occupancy &   $0.82$ &   $0.81$ &   $0.80$ &   $0.80$  &   $0.68$                                                    \\
+                      Warp Execution Efficiency &   $  98\%$ &   $  98\%$ &   $  97\%$ &   $  97\%$ &   $  65\%$                                            \\
+        Global Memory Read Transactions &   $ 9114\text{k}$ &   $ 9166\text{k}$ &   $ 7493\text{k}$ &   $ 7617\text{k}$ &  $9504\text{k}$               \\
+       Global Memory Write Transactions &   $ 2438\text{k}$ &   $ 2512\text{k}$ &   $ 1542\text{k}$ &   $ 1640\text{k}$ &   $ 2809\text{k}$           \\
+          Issue Stall Reasons (Synchronization) &     $11\%$ &     $12\%$ &    $15\%$ &     $15\%$ &     $14\%$ \\
+             Issue Stall Reasons (Data Request) &     $51\%$ &     $50\%$ &    $46\%$ &     $46\%$ &     $47\%$ \\
+                        Number of Block Colours &   $       5$ &   $       5$ &   $       9$ &   $       9$ &   $       6$                                   \\
+                                   Reuse factor &   $     1.5$ &   $     1.5$ &   $     2.8$ &   $     2.8$ &   $     1.48$                                    \\
+                       Number of Thread Colours &   $       3$ &   $       3$ &   $       4$ &   $       4$ &   $       3$                                    \\
+                      Average cache lines/block &   $     300$ &   $     307$ &   $     165$ &   $     184$ &   -                                \\
 
     \hline
   \end{tabular}
-  % }
+  }
   \caption{Collected performance metrics of the hierarchical colouring
   implementation of the \textbf{SpaceDiscretization} kernel.}
   \label{tab:volna_counters_hier}
