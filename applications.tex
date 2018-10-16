@@ -18,7 +18,9 @@ about the 70\% of the time is spent in this kernel on GPUs with global
 colouring.  This is the most complex loop with both indirect reads and writes; it
 iterates through edges, and computes the flux through them. It is called 2000
 times during the total execution of the application and performs about 100
-floating-point operations per mesh edge.
+floating-point operations per mesh edge. For each edge \textbf{res\_calc} reads 
+2*2 double values from nodes, 2*5 double values from cells and increments
+2*4 double values on cells.
 \\
  The tests are executed on a mesh containing 2.8 million cells.
 
