@@ -72,9 +72,12 @@ or uses atomics to do it within the kernel. Both the atomics and the work of the
 auxiliary kernel was substituted in our code by colouring.
 
 \subsubsection{Lulesh}\label{sec:lulesh-summary}
+
+\hyphenation{CalcFBHourglassForceForElems IntegrateStressForElems}
+
 Livermore Unstructured Lagrangian Explicit Shock Hydrodynamics (LULESH,
 \cite{LULESH2:changes}) represents a typical hydrocode representing the Shock
-Hydrodynamics Challenge Problem that originally defined and implemented by
+Hydrodynamics Challenge Problem that was originally defined and implemented by
 Lawrence Livermore National Lab as one of five challenge problems in the DARPA
 UHPC program and has since become a widely studied proxy application in DOE
 co-design efforts for exascale. 
@@ -89,14 +92,17 @@ defined by a mesh.
 
 Like miniAero, the mesh itself is structured (and generated in the code), but
 the algorithm doesn't take this into account and accesses the data through an
-eight-dimensional mapping for the hex8 (brick) elements. In our measurements, we
-used a mesh where the the number of elements (from-set) was $4913000$ and the
-number of nodes (to-set) $5000211$.
+eight-dimensional mapping for the hex8 (brick) elements.
 
-For Lulesh, we tested the \textbf{IntegrateStressForElems} kernel that
-calculates the forces in the nodes. The original CUDA version of the code
-contracted this kernel with \textbf{CalcFBHourglassForceForElems}; the only
-modifications we did to this code for our measurements is to remove these parts
-from the kernel.
+We measured the \textbf{IntegrateStressForElems} kernel that calculates the
+forces in the nodes. For each cell (in each iteration), it reads 3 double values
+from each of the 8 indirectly accessed nodes, increments 3 double values for
+each node, reads 3 double values directly and writes 1 double value directly. In
+our measurements, we used a mesh with \num{4913000} edges and \num{5000211}
+nodes.
+
+The original CUDA version of the code contracted this kernel with
+\textbf{CalcFBHourglassForceForElems}; the only modifications we did to this
+code for our measurements is to remove these parts from the kernel.
 
 % vim:set et sw=2 ts=2 tw=80:
