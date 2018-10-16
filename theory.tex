@@ -25,12 +25,22 @@ writes, so that no two threads with the same colour write the same data, and
 enforce ordering between colours using synchronisation. On the GPU, one would do
 multiple kernel launches corresponding to the colours, so there is no concurrent
 writes between threads in the same kernel. We call this the \emph{global
-colouring} approach. The problem with this is that there is no data reuse: when
-multiple elements write the same data, they are scheduled for execution in
-different launches. Since these operations also tend to read data through the
-same mappings, there is no data reuse in the reads either. Worsening the issue
-is low cache line utilisation: elements of the same colour are not neighbours in
-the mesh, and therefore unlikely to be stored in consecutive memory locations.
+colouring} approach (Figure \ref{fig:unstructured_global}. The problem with this
+is that there is no data reuse: when multiple elements write the same data, they
+are scheduled for execution in different launches. Since these operations also
+tend to read data through the same mappings, there is no data reuse in the reads
+either. Worsening the issue is low cache line utilisation: elements of the same
+colour are not neighbours in the mesh, and therefore unlikely to be stored in
+consecutive memory locations.
+
+\begin{figure}[Htpb]
+  \centering
+  \includegraphics{fig/svg/unstructured_global.eps}
+  \caption{Semantic figure of the global colouring approach. In each kernel
+  launch, the kernels work on edges of the same colour (here: red). The arrows
+  represent the amount of indirect data loaded.}
+  \label{fig:unstructured_global}
+\end{figure}
 
 Another approach is to serialise the indirect updates by means of locks or
 atomic additions. This is quite costly on the GPU, since the whole warp has to
@@ -99,9 +109,18 @@ chunks as large as the number of components in the structure.
 
 To address data races, we use \emph{two-layered colouring} or \emph{hierarchical
 colouring}\cite{op2}: we colour the blocks and the threads within a block as
-well. The former is to avoid data races when thread blocks write the result back
-to global memory and the latter is to avoid threads writing their results into
-shared memory at the same time.
+well (Figure \ref{fig:unstructured_hier}. The former is to avoid data
+races when thread blocks write the result back to global memory and the latter
+is to avoid threads writing their results into shared memory at the same time.
+
+\begin{figure}[Htpb]
+  \centering
+  \includegraphics{fig/svg/unstructured_hier.eps}
+  \caption{Semantic figure of the hierarchical colouring approach. The thread
+  blocks are circled with dashed lines. The arrows represent the amount of
+  indirect data loaded.}
+  \label{fig:unstructured_hier}
+\end{figure}
 
 Note that the data that is loaded into shared memory is not necessarily only the
 data that is updated. The partitioning is done with regard to the the shared
@@ -251,11 +270,21 @@ within blocks. The next proposed algorithm will address this limitation.
 
 To increase data reuse within a block is equivalent to decreasing data shared
 \emph{between} the blocks, more specifically, to decrease the number of times
-the same data is loaded in different blocks. (With the sharing approach, data
-needs to be loaded only once per block.) So the task is to partition the
-elements into blocks of approximately the same size in such a way that when
-these blocks are assigned to CUDA thread blocks, the common data used (loaded
-into shared memory) by different blocks is minimised.
+the same data is loaded in different blocks (Figure \ref{fig:unstructured_part}.
+(With the sharing approach, data needs to be loaded only once per block.) So the
+task is to partition the elements into blocks of approximately the same size in
+such a way that when these blocks are assigned to CUDA thread blocks, the common
+data used (loaded into shared memory) by different blocks is minimised.
+
+\begin{figure}[Htpb]
+  \centering
+  \includegraphics{fig/svg/unstructured_part.eps}
+  \caption{Semantic figure of the hierarchical colouring approach with
+  partitioning. The thread blocks are circled with dashed lines. The arrows
+  represent the amount of indirect data loaded; note that this is smaller than
+  in Figure \ref{fig:unstructured_hier}.}
+  \label{fig:unstructured_part}
+\end{figure}
 
 Let $G_M$ be a graph constructed from the original mapping, where the points are
 the threads, and there is an edge between them if and only if they access the
