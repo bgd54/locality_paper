@@ -18,9 +18,9 @@ about the 70\% of the time is spent in this kernel on GPUs with global
 colouring.  This is the most complex loop with both indirect reads and writes; it
 iterates through edges, and computes the flux through them. It is called 2000
 times during the total execution of the application and performs about 100
-floating-point operations per mesh edge. For each edge \textbf{res\_calc} reads 
-2*2 double values from nodes, 2*5 double values from cells and increments
-2*4 double values on cells.
+floating-point operations per mesh edge. In each iteration, it reads 5 and
+increments 4 double values from each of the 2 indirectly accessed cells, and
+reads 2 double values from each of the 2 indirectly accessed nodes.
 \\
  The tests are executed on a mesh containing 2.8 million cells.
 
@@ -33,7 +33,9 @@ and converted to use the OP2 library\cite{op2}. For Volna top three kernels
 where most time is spent: \textbf{computeFluxes}, \textbf{SpaceDiscretization}
 and \textbf{NumericalFluxes}. We focus on the \textbf{SpaceDiscretization}
 kernel since it has indirect increments and the 60\% of the time spent inside
-this step on GPU with global colouring. 
+this step on GPU with global colouring. In each iteration,
+\textbf{SpaceDiscretization} reads 1 and increments 4 float values from each of
+the 2 indirectly accessed cells, and reads 7 float and 1 integer values directly.
 
 Tests are executed in single precision, on a mesh containing 2.4 million
 triangular cells, simulating a tsunami run-up to the US pacific coast. The
@@ -50,7 +52,9 @@ testing we used the SOD testcase with a 4 million element mesh. The top three
 kernels with the highest runtimes are \textbf{getq\_christiensen1},
 \textbf{getacc\_scatter}, \textbf{gather}. Among these there is only
 one kernel (\textbf{getacc\_scatter}) with indirect increments so we tested our
-optimisations on this kernel.
+optimisations on this kernel. This kernel reads 17 double values directly, and
+increments 4 double values on each of the 4 indirectly accessed nodes in each
+iteration.
 
 \subsubsection{miniAero}\label{sec:mini-aero-summary}
 
