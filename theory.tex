@@ -1,5 +1,5 @@
 In this section we outline the techniques used to effectively optimise
-unstructured mesh applications on GPUs - some of which are commonly known and used. We briefly show a naïve solution, then
+unstructured mesh applications on GPUs---some of which are commonly known and used. We briefly show a naïve solution, then
 continue with describing various improvements found in the literature, and then show our
 approach.
 
@@ -175,7 +175,7 @@ colours we have: the number of colours is no less than the number of threads
 writing the same data. Since the number of synchronisations also grows with the
 number of thread colours (more precisely, it is the number of colours plus two,
 one before and one after the computation if the input and the increment are
-stored separately in shared memory). There is a trade-off between the number of
+stored separately in shared memory), there is a trade-off between the number of
 synchronisations and data reuse. Our measurements showed that if the kernel is
 memory-bound, the greater data reuse leads to increased performance, but the
 trade-off is non-trivial, as we will demonstrate in the Measurements section.
@@ -327,8 +327,9 @@ parameter and $\epsilon$ is an empirical tuning parameter to create as large
 blocks (within the limit) as possible.
 
 This support for a variable number of working threads (ie. to determine if the
-current thread should do any actual computation) also incurs a slight overhead of having to load the start and end index for each block.We found this overhead to be
-minimal in practice.
+current thread should do any actual computation) also incurs a slight overhead
+of having to load the start and end index for each block. We found this overhead
+to be minimal in practice.
 
 Due to the way global loads and stores work on the GPU, what actually affects
 performance is not the number of data points accessed, but rather the number of
@@ -366,5 +367,19 @@ the data in texture cache that has lower latency than the global memory.
 
 \subsection{Integration into codes}
 
-There are two key components to deploying these transformations and optimisations. First, the existing data layouts may need to be changed to accommodate AoS, SoA or reordering optimisations, and any auxiliary datasets need to be computed (e.g. exact block sizes when using partitioning-based reordering). Second, the CUDA kernels that perform the computations need to be changed to load, process and store data. The latter was described in Section \ref{shared-memory-approach} - the computational kernel needs to be surrounded by code provided by our library. Data reorganisation and execution planning has a one-off cost, and needs to be performed during initialisation - our library also provides these as functions. It can of course affect other parts of the code as well - as discussed above, reordering will not affect direct kernels, but it will affect indirect kernels, and AoS/SoA transformations affect all kernels. The impact of these transformations need to be considered as a whole on the applications, considering re-organisation between different computational kernels is usually prohibitively expensive.
+There are two key components to deploying these transformations and
+optimisations. First, the existing data layouts may need to be changed to
+accommodate AoS, SoA or reordering optimisations, and any auxiliary datasets
+need to be computed (e.g. exact block sizes when using partitioning-based
+reordering). Second, the CUDA kernels that perform the computations need to be
+changed to load, process and store data. The latter was described in Section
+\ref{shared-memory-approach}---the computational kernel needs to be surrounded
+by code provided by our library. Data reorganisation and execution planning has
+a one-off cost, and needs to be performed during initialisation---our library
+also provides these as functions. It can of course affect other parts of the
+code as well---as discussed above, reordering will not affect direct kernels,
+but it will affect indirect kernels, and AoS/SoA transformations affect all
+kernels. The impact of these transformations need to be considered as a whole on
+the applications, considering re-organisation between different computational
+kernels is usually prohibitively expensive.
 % vim:set et sw=2 ts=2 fdm=marker tw=80:

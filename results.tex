@@ -506,12 +506,14 @@ between reads and writes is also because, like \textbf{SpaceDiscretization},
 
 
 The \textbf{IntegrateStressForElems} kernel uses a mapping with 8 neighbours
-(compared to the 2 - 4 as in the case of the previous ones) for the brick elements. Due to this, the number of colours is quite high: $8$, $16$ and $24$ in the
-global coloring versions (for the different reorderings), and $4$, $50$ and $15$
-in the hierarchical colouring versions. The number of thread colours was also
-quite high: $4$ in the non-reordered ($4.5$ in the GPS) and $11.6$ in the
-partitioned version: this is a much higher increase compared to the previous
-applications (Table \ref{tab:lulesh_counters_hier}). At the same time of course, data reuse is higher compared to 2D applciations - between $2.6$ and $4.8$.
+(compared to the 2--4 as in the case of the previous ones) for the brick
+elements. Due to this, the number of colours is quite high: $8$, $16$ and $24$
+in the global coloring versions (for the different reorderings), and $4$, $50$
+and $15$ in the hierarchical colouring versions. The number of thread colours
+was also quite high: $4$ in the non-reordered ($4.5$ in the GPS) and $11.6$ in
+the partitioned version: this is a much higher increase compared to the previous
+applications (Table \ref{tab:lulesh_counters_hier}). At the same time of course,
+data reuse is higher compared to 2D applications - between $2.6$ and $4.8$.
 
 The other aspect in which LULESH is different is that it uses a high amount of
 registers ($96$), significantly decreases occupancy: with block size 320, the
