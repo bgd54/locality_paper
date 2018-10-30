@@ -250,6 +250,10 @@ bandwidths are (understandably) higher.
   \label{fig:airfoil_bw-vs-bs_hier_large_volta}
 \end{figure}
 
+% TODO application speedup
+On Volta, we achieved $1.28\times$ speedup in the kernel compared to the
+original code with $446$ GB/s bandwidth ($60\%$ of the peak bandwidth).
+
 \subsubsection{Analysis of Volna}
 
 Measurements of the Volna application (\textbf{SpaceDiscretization} kernel)
@@ -423,6 +427,10 @@ faster than the original OP2 version.
   \label{fig:volna_speedup}
 \end{figure}
 
+On Volta, the performance of the kernel was $462$ GB/s ($62\%$ of the peak
+bandwidth).
+
+
 \subsubsection{Analysis of BookLeaf}
 
 The measurements on the BookLeaf application (specifically the
@@ -504,6 +512,9 @@ between reads and writes is also because, like \textbf{SpaceDiscretization},
   reordering and partitioning (part.)}
   \label{fig:bookleaf_speedup}
 \end{figure}
+
+On Volta, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
+bandwidth).
 
 \subsubsection{Analysis of LULESH}\label{sec:analysis-of-lulesh}
 
@@ -631,6 +642,10 @@ occupancy is this low.
     column is the measured performance of the original code.}
   \label{tab:lulesh_counters_hier}
 \end{table}
+
+% TODO application speedup
+On Volta, we achieved $1.84\times$ speedup in the kernel compared to the
+original code with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth).
 
 \subsubsection{Analysis of MiniAero}
 
@@ -774,6 +789,10 @@ reason as in case of LULESH.
     is the measured performance of the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
+
+% TODO application speedup
+On Volta, we achieved $1.87\times$ speedup in the kernel compared to the
+original code with $263$ GB/s bandwidth ($35\%$ of the peak bandwidth).
 
 
 \subsubsection{Analysis of structured meshes}
