@@ -15,8 +15,8 @@
 For testing we used NVIDIA Tesla P100 and V100 GPUs, Intel(R) Xeon(R) CPU
 E5-1660 (3.20GHz base frequency, 1 socket with 8 cores) with Ubuntu 16.04. We
 used the nvcc compiler with CUDA 9.0 (V9.0.176). The parameters of the GPUs
-are shown in Table \ref{tab:GPU_datasheet}. We show mainly the results on the
-P100, however, the results were similar on the newer architecture.
+are shown in Table \ref{tab:GPU_datasheet}. We discuss the results on the
+P100 in detail, however, the results were similar on the newer architecture.
 \begin{table}
 \centering
 \begin{tabular}{|l|c|c|}
@@ -37,6 +37,8 @@ P100, however, the results were similar on the newer architecture.
   \cite{Pascal_whitepaper, Volta_whitepaper}}
 \label{tab:GPU_datasheet}
 \end{table}
+
+There are three key factors that we study: (1) colouring approach, which may either be global or hierarchical, (2) method of data reordering, which may be none, GPS-based, or graph partitioning-based, (3) data layout, which may be AoS or SoA. All combinations of these are evaluated and compared to each other and the reference implementation.
 
 When comparing performance of different versions, we used the achieved bandwidth
 that is the key performance metric with memory-bound applications such as our
@@ -75,13 +77,12 @@ certain variants are better than others.
 
 \section{Conclusion}\label{conclusion}
 
-We investigated the methods of accelerating parallel scientific computations on
-unstructured meshes. We specifically looked at improving the performance of
-memory-bound implementations executing on GPUs.
+We investigated methods of accelerating parallel scientific computations on
+unstructured meshes, specifically looking at improving the performance of
+kernels with indirect increment access patterns.
 
-We designed a reordering algorithm which uses k-way recursive partitioning to
-improve data reuse and with it, performance of unstructured mesh applications
-accelerated on GPU platforms.
+We considered a number of well-known techniques, such as AoS and SoA, graph bandwidth minimising algorithms, global and hierarchical colouring approaches. We designed a reordering algorithm which uses k-way recursive partitioning to
+improve data reuse within CUDA thread blocks.
 
 We implemented a library that can automatically (without major modifications
 from the part of the user) parallelise serial user code, avoiding data races
@@ -92,8 +93,8 @@ available global memory bandwidth.
 
 Using this library, we analysed the performance of our algorithms on a number of
 representative unstructured mesh applications varying a number of parameters,
-such as the different thread block sizes and data layouts (Array of Structs
-versus Struct of Arrays).
+such as the different thread block sizes and data layouts (Array of Structures
+versus Structure of Arrays).
 
 When comparing the performance of global and hierarchical colouring (shared
 memory caching) approach, the shared memory approach consistently performed
@@ -109,7 +110,7 @@ memory and fewer global memory transactions.
 
 We have shown that there is a trade-off between high data reuse and large
 numbers of thread colours in hierarchical colouring that is especially
-pronounced when the achieved occupancy is low: the more thread colours a block
+pronounced in 3D applications, and when the achieved occupancy is low: the more thread colours a block
 has, the more synchronisations it will need, the latency of which can be hard to
 hide when there are few eligible warps.
 
@@ -123,7 +124,7 @@ adoption of two-level colouring schemes and partitioning for increased data
 reuse.
 
 When carrying out this work, it had become clear that partitioning algorithms in
-traditional libraries such as Metis and Scotch weren't particularly well suited
+traditional libraries such as Metis and Scotch were not particularly well suited
 for producing such small partition sizes. As potential future work, we wish to
 explore algorithms that are better optimised for this purpose. The performance
 of these partitioning algorithms was also low - parallelising this could be

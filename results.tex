@@ -5,17 +5,19 @@ most well understood and thoroughly studied example, therefore we go into more
 detail here --- for later kernels and applications we then identify key
 differences.
 
-Table \ref{tab:airfoil_counters_glob} show the effect of reordering on
-the global colouring approach in the Airfoil application (\textbf{res\_calc}
+Table \ref{tab:airfoil_counters_glob} show the effect of various optimisations on the Airfoil application (\textbf{res\_calc}
 kernel).
 
-The SoA layout, as mentioned in Section \ref{aos-to-soa}, improves on the
+\emph{Global colouring}: The SoA layout, as mentioned in Section \ref{aos-to-soa}, improves on the
 performance, since the threads in a warp access data addresses that are near
 each other. This can also be seen in the number of global memory read
 transactions as it is roughly $87\%$ of that with AoS layout. This is even
-strengthened by GPS renumbering, which places data points that are accessed in
+further improved by the GPS renumbering, which places data points that are accessed in
 consecutive threads close to each other ($19\%$ reduction in global read
-transactions compared to AoS).
+transactions compared to AoS). The partition based reordering is primarily intended for the hierarchical
+colouring; it groups threads that access the same data together, while the
+global colouring puts them into different kernel launches, eliminating any
+chance for spatial reuse, therefore reducing performance.
 
 \begin{table}[Htbp]
   \centering
@@ -57,34 +59,14 @@ transactions compared to AoS).
   \label{tab:airfoil_counters_glob}
 \end{table}
 
-The partition based reordering is primarily intended for the hierarchical
-colouring; it groups threads that access the same data together, while the
-global colouring puts them into different kernel launches, eliminating any
-chance for spatial reuse, therefore reducing performance.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % airfoil hierarchical
 
-The measurement on Figure \ref{fig:airfoil_bw-vs-bs_hier_large} used the
-hierarchical colouring and the shared memory approach, that, coupled with the
-fact that it uses more registers ($52$ (SoA) and $48$ (AoS)) compared to global
-colouring ($48$ and $40$), leads to larger variations in occupancy and
-performance as the block size changes; for example, between block sizes $480$
-and $448$ ($44\%$ versus $51\%$).
-
-The key goal of this strategy is to better exploit data reuse by using the
+\emph{Hierarchical colouring:}  The key goal of this strategy is to better exploit data reuse by using the
 shared memory; the results of which show immediately in the number of global
-transactions as well: at block size $480$, there is roughly $60\%$ decrease in
-global read and write transactions, leading to three times the performance.
-
-%XXX: discuss difference between small and large problem (too small a problem, low achieved occupancy on some launches)
-% Note that on the smaller dataset, the difference between the reordering schemes
-% is not that pronounced, because the achieved occupancy is smaller: not enough
-% threads to fill the multiprocessor.
-% TODO that's what I wanted to say, but the actual occupancy is 40-50% w/ METIS,
-% 36/58 NR
-
-% (15KB shared, and 9KB shared)
+transactions as well, shown in Table \ref{tab:airfoil_counters_glob}: at block size $480$, there is roughly $60\%$ decrease in
+global read and write transactions, leading to three times the performance. Throughput for different block sizes is shown in Figure \ref{fig:airfoil_bw-vs-bs_hier_large}.
 
 These also show that the reordering using partitioning is indeed effective. With
 a block size of 448, data reuse increased from $2$ with the reference version,
@@ -96,7 +78,7 @@ occurring because of data requests: $61\%$ with partitioning, $68\%$ without.
 
 With the increased reuse, the number of thread colours is also larger ($4$
 versus $2.2$) and this leads to more synchronisation: with reordering, $14\%$
-of the stalls were caused by synchronisation, compared to $9\%$.
+of the stalls were caused by synchronisation, up from $9\%$.
 
 This is further illustrated by Figure \ref{fig:airfoil_speedup_large} that shows
 the relative speedup compared to the original OP2 version. In this case, the
@@ -104,6 +86,11 @@ original version also used the shared memory approach, so the performance gain
 is caused by the reordering. In the original version $56\%$ of the total time is spent
 in \textbf{res\_calc}, therefore the achieved $1.2\times$ speedup on \textbf{res\_calc}
 causes about $1.1\times$ speedup on the whole application.
+
+% Figure \ref{fig:airfoil_bw-vs-bs_hier_large} shows performance variations at different block sizes with the hierarchical colouring approach. This kernel uses more registers ($52$ (SoA) and $48$ (AoS)) compared to global
+% colouring ($48$ and $40$), which leads to larger variations in occupancy and
+% performance as the block size changes; for example, between block sizes $480$
+% and $448$ ($44\%$ versus $51\%$).
 
 % airfoil profiler counters {{{ %
 % table hier {{{2 %
@@ -213,14 +200,12 @@ causes about $1.1\times$ speedup on the whole application.
 \end{figure}
 
 Although the number of block colours increased with reordering, it is only a
-problem when the size of the dataset is so small that it decreases the achieved
-occupancy (when there are not enough threads in one kernel launch to use the
-available resources on the GPU).
+problem when the size of the dataset is so small that there are too few blocks for some colours to saturate the GPU.
 
-Despite the higher locality, in most cases, the AoS version also uses more
-registers (sometimes the compiler can optimise the register count of both
-versions to the same number), and this may lead to lower occupancy. Hence it is
-not always obvious which is the better choice.
+% Despite the higher locality, in most cases, the AoS version also uses more
+% registers (sometimes the compiler can optimise the register count of both
+% versions to the same number), and this may lead to lower occupancy. Hence it is
+% not always obvious which is the better choice.
 
 
 % \begin{table}[Htbp]
@@ -265,8 +250,8 @@ bandwidths are (understandably) higher.
 
 \subsubsection{Analysis of Volna}
 
-In measurements of the Volna application (\textbf{SpaceDiscretization} kernel)
-with hierarchical colouring (Figure \ref{fig:volna_bw-vs-bs_hier}) the
+Measurements of the Volna application (\textbf{SpaceDiscretization} kernel)
+with hierarchical colouring are shown in Figure \ref{fig:volna_bw-vs-bs_hier} and Table \ref{tab:volna_counters_hier}. The
 reordering by partitioning again improves performance: it increases reuse from
 $1.5$ to $2.8$ and decreases the number of global transactions by $18\%$ for
 reads and $37\%$ for writes (Table \ref{tab:volna_counters_hier}). The larger
@@ -284,7 +269,7 @@ increased performance ($292\,\text{GB/s}$ versus $268\,\text{GB/s}$).
 Due to the low register counts ($28$--$32$) and the fact that volna uses float
 (and int) datatypes compared to the doubles in Airfoil, the occupancy was quite
 high (around $80\%$).  This explains the lack of dependence on the block size as
-shown by the figure.
+shown in the Figure \ref{fig:volna_bw-vs-bs_hier}.
 
 Compared to Airfoil, the increase in the number of thread colours is less when
 partitioning: from $3$ to $4$, hence, the synchronisation overhead is also less:
@@ -392,6 +377,7 @@ faster than the original OP2 version.
 %                                       Bandwidth      82GB/s     116GB/s      82GB/s     116GB/s     102GB/s     128GB/s
 % }}} volna counters %
 
+%XXX: make this table look more like the airfoil one
 \begin{table}[Htbp]
   \centering
   \resizebox{\columnwidth}{!}{
@@ -518,17 +504,14 @@ between reads and writes is also because, like \textbf{SpaceDiscretization},
 
 \subsubsection{Analysis of LULESH}\label{sec:analysis-of-lulesh}
 
-With LULESH (Figure \ref{fig:lulesh_bw-vs-bs_hier}), the partitioning approach
-actually worsened performance.
 
-The \textbf{IntegrateStressForElems} kernel uses a mapping with 8 dimensions
-(compared to the 2 or 3 as in the case of the previous ones) that has high
-connectivity, so the number of colours is quite high: $8$, $16$ and $24$ in the
+The \textbf{IntegrateStressForElems} kernel uses a mapping with 8 neighbours
+(compared to the 2 - 4 as in the case of the previous ones) for the brick elements. Due to this, the number of colours is quite high: $8$, $16$ and $24$ in the
 global coloring versions (for the different reorderings), and $4$, $50$ and $15$
 in the hierarchical colouring versions. The number of thread colours was also
 quite high: $4$ in the non-reordered ($4.5$ in the GPS) and $11.6$ in the
 partitioned version: this is a much higher increase compared to the previous
-applications (Table \ref{tab:lulesh_counters_hier}).
+applications (Table \ref{tab:lulesh_counters_hier}). At the same time of course, data reuse is higher compared to 2D applciations - between $2.6$ and $4.8$.
 
 The other aspect in which LULESH is different is that it uses a high amount of
 registers ($96$), significantly decreases occupancy: with block size 320, the
@@ -537,11 +520,7 @@ AoS version achieved $15\%$ and the SoA version achieved around $30\%$.
 Because of these two reasons, the synchronisation overhead ($39\%$ stalls were
 from synchronisation on the partitioned mesh) couldn't be hidden: there were no
 warps from other blocks to be scheduled in place of the stalled ones because
-there was only one block running on each multiprocessor.
-
-In terms of reuse, although the gain (from $2.6$ to $4.8$) is larger compared to
-Airfoil, it is still not enough to offset the overhead of synchronisation: in
-this case, the original ordering of the mesh is better. The difference in
+there was only one block running on each multiprocessor. The difference in
 achieved occupancy also means that the SoA version with two blocks per
 multiprocessor performs better.
 
@@ -660,9 +639,8 @@ low occupancy.
 The amount of data indirectly accessed by the kernel is also large: each thread
 accesses $2$ data points indirectly, each holding $32$ double precision values.
 If all of that is loaded into shared memory, the size of it exceeds the hardware
-limits with block sizes larger than $288$; it didn't run on the original mesh
-with any block size, and only with smaller block sizes on the reordered meshes
-(Figure \ref{fig:mini_aero_bw_crash}). The other measurements were carried out
+limits with block sizes larger than $288$; it didn't run with the original mesh
+numbering with any block size, and only with smaller block sizes on the reordered meshes (Figure \ref{fig:mini_aero_bw_crash}). The other measurements were carried out
 by only loading the incremented data into shared memory.
 
 \begin{figure}[Htbp]
@@ -682,7 +660,7 @@ of block colours exceeded the implementation limit of the library, which is
 $256$.
 
 As with LULESH, only one block was running at a time on each multiprocessor.
-Although the synchronisation overhead wasn't that high ($3$ and $6$ thread
+Although the synchronisation overhead was lower ($3$ and $6$ thread
 colours in the GPS reordered and partitioned versions, respectively), the costly
 operations prevented high performance gains in the case of the partitioned
 version (Figure \ref{fig:mini_aero_bw_small-cache}).
@@ -793,53 +771,51 @@ reason as in case of LULESH.
 \subsubsection{Analysis of structured meshes}
 
 As mentioned in Sections \ref{sec:mini-aero-summary} and
-\ref{sec:lulesh-summary}, the meshes of miniAero and LULESH are generated by the
-code itself, therefore we can control the block-shapes explicitly by generating
-a partition with the mesh. This allows us to understand the compromise between
+\ref{sec:lulesh-summary}, the meshes of miniAero and LULESH are actually structured meshes, generated by the
+code itself. This lets us to use the structured nature of the mesh to create partitions with netter shapes than what METIS produces. This in turn allows us to understand the trade-off between
 high data reuse and few thread colours used more by creating 1D, 2D and 3D
-blocks (these will have an increasing amount of reuse and number of colours).
+partitions (these will have an increasing amount of reuse and number of colours).
 
 While both kernels operate on 3D Cartesian (hex8) meshes, the
-\textbf{IntegrateStressForElems} kernel uses a mapping from cells to their
-incident vertices, and the \textbf{compute\_face\_flux} kernel maps from
-(internal) faces to cells. In the former case, the blocks are created from the
-cells as rectangles.
+\textbf{IntegrateStressForElems} kernel in LULESH uses a mapping from cells to their
+connected vertices, and the \textbf{compute\_face\_flux} kernel in miniAero maps from
+(internal) faces to cells. We then created a number of different partition shapes - 1D lines, 2D rectangles and 3D bricks.
 
-In the second case, the creation starts the same way, but at the last axis (the
-contiguous axis) three faces corresponding to one cell are added to the block at
-the same time. This way the blocks cover the whole mesh similarly to the
-previous case. This also means that when the block is long along the third axis,
-the reuse will be higher than it would be with the other two axes. Because of
-this, in our measurements, we ordered the dimensions of the blocks so that they
-are longest along this axis.
+%In the former case, the blocks are created from the
+%cells as rectangles.
+% In the second case, the creation starts the same way, but at the last axis (the
+% contiguous axis) three faces corresponding to one cell are added to the block at
+% the same time. This way the blocks cover the whole mesh similarly to the
+% previous case. This also means that when the block is long along the third axis,
+% the reuse will be higher than it would be with the other two axes. Because of
+% this, in our measurements, we ordered the dimensions of the blocks so that they
+% are longest along this axis.
 
 Figures \ref{fig:lulesh_block} and \ref{fig:mini_aero_block} show the
 bandwidths, reuse factors and the number of thread colours across different
 block-shapes, along with the result of partitioning the same mesh using METIS.
 The size of the blocks is $128$. These measurements were run on meshes with
-shape specifically taylored so that the handcrafted blocks can cover them
+shape specifically tailored so that the handcrafted blocks can cover them
 without any gaps.
 
-In \textbf{IntegrateStressForElems}, compared to the $134\,\text{GB/s}$
-bandwidth of the original ordering (which is a row major order, similar to ours
+In \textbf{IntegrateStressForElems}, the bandwidth of the original ordering achieved  $134\,\text{GB/s}$ - it uses a row major order, similar to ours
 when we use a block shape that is $128$ cells long and only $1$ cell thin in the
-other dimensions) and the $132\,\text{GB/s}$ of the partitioned mesh (detailed
-in Section \ref{sec:analysis-of-lulesh}), we achieved $167\,\text{GB/s}$
+other dimensions. The partitioned mesh (detailed
+in Section \ref{sec:analysis-of-lulesh}) achieved $132\,\text{GB/s}$, and we achieved $167\,\text{GB/s}$
 bandwidth using our handcrafted blocks, for the same block size ($128$). Note
 that using regular shapes is better for the thread colouring algorithm too: with
 METIS partitioning, the number of colours needed is higher than in the other
 cases.
 
-In \textbf{compute\_face\_flux}, we achieved $167\,\text{GB/s}$ bandwidth,
-compared to $101\,\text{GB/s}$ achieved with partitioning.
+For \textbf{compute\_face\_flux}, we achieved $167\,\text{GB/s}$ bandwidth,
+compared to $101\,\text{GB/s}$ achieved with METIS partitioning.
 
-Of course, using handcrafted blocks are ``cheating'', and can only be done when
-the mesh itself is not structured. However, these illustrate clearly that when
+Of course, using these handcrafted blocks can only be done on meshes that are actually structured, therefore this is not representative of realistic cases. However, these results illustrate clearly that when
 the number of thread colours are the same, increased reuse leads to better
 performance. Also, there is an optimal number of thread colours for each
 application, and performance will suffer above that. The challenge lies in
 finding a partitioning algorithm that can either find the middle ground, or can
-be tuned along the amount of reuse it aims to achieve.
+be tuned along the amount of reuse it aims to achieve. Such partitioning algorithms are not currently available, but we demonstrate a clear need for them.
 
 \begin{figure}[Htbp]
   \centering

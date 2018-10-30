@@ -1,6 +1,6 @@
 In this section we outline the techniques used to effectively optimise
-unstructured mesh applications on GPUs. We briefly show a naïve solution, then
-continue with describing various improvements others used, and then show our
+unstructured mesh applications on GPUs - some of which are commonly known and used. We briefly show a naïve solution, then
+continue with describing various improvements found in the literature, and then show our
 approach.
 
 \subsection{Traditional parallelisation approaches}
@@ -13,20 +13,13 @@ from-set), because then the number of computations is fixed: the amount of data
 involved is fixed in the dimension of the mapping and the data arrays.
 
 Care must be taken when writing parallel code to avoid data races when different
-threads modify the same data. It could happen that the threads are scheduled so
-that both reads occur before the writes. For example, if the threads increment
-by $1$ and $2$, respectively, then the final result could be an increment of $3$
-(when one increment happens fully before the other), $2$ (when the second thread
-writes last), $1$ (when the first thread writes last). There are several
-approaches to tackle this.
-
-A solution would be to colour each thread according to the indirect data it
+threads modify the same data. There are several approaches to tackle this. One solution is to colour each thread according to the indirect data it
 writes, so that no two threads with the same colour write the same data, and
-enforce ordering between colours using synchronisation. On the GPU, one would do
+enforce ordering between colours using synchronisation \cite{Zegard2013}. On the GPU, one would do
 multiple kernel launches corresponding to the colours, so there is no concurrent
 writes between threads in the same kernel. We call this the \emph{global
-colouring} approach (Figure \ref{fig:unstructured_global}. The problem with this
-is that there is no data reuse: when multiple elements write the same data, they
+colouring} approach (Figure \ref{fig:unstructured_global}). The drawback of this
+approach is that there is no data reuse: when multiple elements write the same data, they
 are scheduled for execution in different launches. Since these operations also
 tend to read data through the same mappings, there is no data reuse in the reads
 either. Worsening the issue is low cache line utilisation: elements of the same
@@ -43,11 +36,11 @@ consecutive memory locations.
 \end{figure}
 
 Another approach is to serialise the indirect updates by means of locks or
-atomic additions. This is quite costly on the GPU, since the whole warp has to
+atomic additions \cite{Kraus:2014:ACC:2691158.2691164}. This is quite costly on the GPU, since the whole warp has to
 wait at the synchronisation step leading to warp divergence.
 
 Yet another solution is the use of a large temporary array that stores the
-results for each thread separately, avoiding race conditions by formulation. But
+results for each thread separately, avoiding race conditions by formulation \cite{LULESH:spec,miniaero}. But
 after the computation finishes, another kernel is required to gather the results
 corresponding to one data point. This suffers from the problem of not knowing
 how many values one thread has to gather, and the warps could diverge
@@ -65,7 +58,7 @@ transformation} \label{aos-to-soa}
 
 Because of the lockstep execution, consecutive threads in a warp are reading the
 memory at the same time, hence the layout of the data in the memory is an
-important factor. We used two different layouts in our measurements. The first
+important factor. We used two commonly known different layouts in our measurements \cite{sharma2015data}. The first
 is the Array-of-Structures layout which means that the data associated with one
 element is in consecutive places in the array (and thus in memory). The other
 layout is the Structure-of-Arrays where we store the components of elements
@@ -96,7 +89,7 @@ Our approach exploits the shared memory on the GPU, which has much lower access
 latencies than the global memory, but is only shared within thread blocks. The
 idea is to collect the data required to perform the computations and load it
 into shared memory. During computation, the indirect accesses are to the shared
-memory, and the result is also stored there. After computation by all threads
+memory, and the result is also stored there. After computations by all threads
 in the block have finished, the global memory is updated with the contents of
 the shared memory.
 
@@ -104,7 +97,7 @@ Note that fetching the data from the global memory (and also writing the result
 back) can be done by the threads independently of which thread will use which
 pieces of data for the computations. Particularly, fetching can be done in the
 order the data is laid out in memory, ensuring the utilisation of cache lines as
-much as possible. Also, if AoS layout is used, data can be read in contiguous
+much as possible. When the AoS layout is used, data can be read in contiguous
 chunks as large as the number of components in the structure.
 
 To address data races, we use \emph{two-layered colouring} or \emph{hierarchical
@@ -122,11 +115,10 @@ is to avoid threads writing their results into shared memory at the same time.
   \label{fig:unstructured_hier}
 \end{figure}
 
-Note that the data that is loaded into shared memory is not necessarily only the
-data that is updated. The partitioning is done with regard to the the shared
-memory, the colouring with regard to the updated data. In fact, all of the
-indirectly accessed data can be loaded if it fits into shared memory (or does
-not cause such a low occupancy that offsets the benefits of high reuse).
+% Note that we can put data that is going to be read or written into shared memory. The partitioning is done with regard to the shared
+% memory, the colouring with regard to the updated data. In fact, all of the
+% indirectly accessed data can be loaded if it fits into shared memory (or does
+% not cause such a low occupancy that offsets the benefits of high reuse).
 
 The steps done by a kernel are described in Algorithm \ref{code:shared}. All
 indirect data accessed by the block (this is identified during a preprocessing
@@ -143,12 +135,9 @@ consistent degradation in performance when switching to AoS layout, due to the
 spatial locality described in Section \ref{aos-to-soa}: it leads to fewer bank
 conflicts.
 
-After the data is loaded into shared memory, the results of the thread are
-computed by the main body of the kernel, and placed into registers.  Next the
+After the data is loaded into shared memory, each thread executes the main body of the kernel, and outputs are placed into registers.  Next, the
 threads update the result in shared memory with their increments. Finally the
-updated data is written back to global memory. Note that this is not the same
-data array as the one used as the input for the computations, since those are
-values calculated by a previous kernel or iteration.
+updated data is written back to global memory.
 
 \begin{algorithm}
   \begin{algorithmic}
@@ -186,21 +175,21 @@ colours we have: the number of colours is no less than the number of threads
 writing the same data. Since the number of synchronisations also grows with the
 number of thread colours (more precisely, it is the number of colours plus two,
 one before and one after the computation if the input and the increment are
-stored separately in shared memory), there is a trade-off between the number of
+stored separately in shared memory). There is a trade-off between the number of
 synchronisations and data reuse. Our measurements showed that if the kernel is
 memory-bound, the greater data reuse leads to increased performance, but the
 trade-off is non-trivial, as we will demonstrate in the Measurements section.
 
 \subsection{Increasing data reuse}\label{increasing-data-reuse}
 The key contribution of our work is the reordering of the elements in the
-from-set (which map to the threads), so we can control how CUDA thread blocks
+from-set (which map directly to the threads), so we can control how CUDA thread blocks
 are formed and how much data reuse can be achieved. We consider mainly the
 shared memory approach, where the benefit of data reuse is twofold: it decreases
 the number of global memory transactions and decreases the size of shared memory
 needed, which leads to greater occupancy.
 
 We have looked at two different approaches: the first is the sparse matrix
-bandwidth reducing Gibbs-Poole-Stockmeyer algorithm, the second is partitioning.
+bandwidth reducing Gibbs-Poole-Stockmeyer algorithm \cite{gps}, the second is partitioning.
 
 In our measurements, we only consider one kernel and reorder accordingly. This
 does not affect the performance of direct kernels (kernels in which there is no
@@ -264,7 +253,7 @@ first method.
 
 However, the algorithm fails to take into account that on the GPU the threads
 are grouped into blocks, and data reuse can only realistically be exploited
-within blocks. The next proposed algorithm will address this limitation.
+within blocks. The next proposed algorithm addresses this limitation.
 
 \subsubsection{Partition based reordering}
 
@@ -310,7 +299,7 @@ partitions using the recursive bisection algorithm, then, while progressively
 uncoarsening the graph, locally optimises the cuts.
 
 The algorithm tries to maintain equal block sizes in the resulting partition,
-however, it is not always possible because of the way the it works. Since CUDA
+however, it is not always possible because of the underlying algorithm. Since CUDA
 launches threadblocks with equal size, this must be the maximum of the block
 sizes in the created partition. This means that some threads do not work, and
 the occupancy is lower.
@@ -338,14 +327,12 @@ parameter and $\epsilon$ is an empirical tuning parameter to create as large
 blocks (within the limit) as possible.
 
 This support for a variable number of working threads (ie. to determine if the
-current thread should do any actual computation) also incurs a slight overhead
-of two global loads for each thread: this number and the starting offset in the
-arrays (which are now stored in a CSR format). We found this overhead to be
+current thread should do any actual computation) also incurs a slight overhead of having to load the start and end index for each block.We found this overhead to be
 minimal in practice.
 
 Due to the way global loads and stores work on the GPU, what actually affects
 performance is not the number of data points accessed, but rather the number of
-cache lines (of size 32 bytes) that are accessed. We used a simple heuristic
+cache lines (of size 32 bytes on the hardware used) that are accessed. We used a simple heuristic
 reordering of data points that takes this into account.
 
 The idea is to group data points together that are read/written by the same set
@@ -354,7 +341,7 @@ that case will count more than once. To achieve this, we simply sort the data
 points by the number of partitions that write them, and within this, the indices
 of the partitions themselves.
 
-\subsection{Optimisations}\label{optimisations}
+\subsection{Further optimisations}\label{optimisations}
 
 There are a few optimisations we introduced to further improve performance.
 
@@ -366,15 +353,18 @@ types (\lstinline!float2!, \lstinline!float4! and \lstinline!double2!) to load
 and write larger chunks (16 bytes) of data at a time.
 
 To reduce warp divergence when updating the shared memory with the increments,
-the threads can be sorted within a block by their colours. After this, threads
+the threads within a block can be sorted by their colour. After this, threads
 with the same colour will be next to each other, so warps will have fewer threads
 of different colours, hence less divergence on average.
 
-To allow the compiler to apply some reordering optimisations that it wouldn't be
-able to do otherwise, the data pointers on the GPU is marked
+To allow the compiler to apply some reordering optimisations that it would not be
+able to do otherwise, the data pointers on the GPU are marked
 \lstinline!__restrict__! and \lstinline!const! where applicable. The former
 tells the compiler that the pointers do not \emph{alias} one another, ie. they
 do not point to the same memory space. The latter enables the compiler to place
 the data in texture cache that has lower latency than the global memory.
 
+\subsection{Integration into codes}
+
+There are two key components to deploying these transformations and optimisations. First, the existing data layouts may need to be changed to accommodate AoS, SoA or reordering optimisations, and any auxiliary datasets need to be computed (e.g. exact block sizes when using partitioning-based reordering). Second, the CUDA kernels that perform the computations need to be changed to load, process and store data. The latter was described in Section \ref{shared-memory-approach} - the computational kernel needs to be surrounded by code provided by our library. Data reorganisation and execution planning has a one-off cost, and needs to be performed during initialisation - our library also provides these as functions. It can of course affect other parts of the code as well - as discussed above, reordering will not affect direct kernels, but it will affect indirect kernels, and AoS/SoA transformations affect all kernels. The impact of these transformations need to be considered as a whole on the applications, considering re-organisation between different computational kernels is usually prohibitively expensive.
 % vim:set et sw=2 ts=2 fdm=marker tw=80:

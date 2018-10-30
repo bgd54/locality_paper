@@ -1,51 +1,46 @@
 To satisfy the computational needs of scientific algorithms, it is increasingly
 necessary to parallelise their solution on modern multi-core CPUs, and GPUs. In
 the past ten years since the first release of the CUDA language extension for
-C/C++ the GPUs became widely used for high performance and scientific
+C/C++, GPUs became widely used for high performance and scientific
 computations. CUDA provides a low level abstraction commonly referred to as
 Single Instruction Multiple Threads (SIMT), which gives us fine grained control
 over GPU architectures. \\
 A significant class of scientific applications operate on unstructured meshes,
-which are represented as sets and explicit connections between them. These
-applications are operating on large sets and usually execute similar
-computations for every set element. For processing the elements, they can
-access data on the set which they operate on, or, using indirections, data
-defined on other sets. In the latter case multiple threads may try to modify
+which are commonly represented as sets and explicit connections between them. Computations generally iterate over elements of a set (e.g. faces), performing the same computations, on different data; they can
+access data on the set which they operate on (e.g. fluxes defined on the faces), or, using indirections, data
+defined on other sets (such as coordinate data on connected vertices). In the latter case multiple threads may try to modify
 the same data, leading to race conditions. This algorithmic pattern is the
 focus of our work: operations on sets that read and most importantly
 \emph{increment} data indirectly on other sets. These operations are common in
-numerical PDE solvers, such as Finite Volumes and Finite Elements. The adoption
-of GPUs for these kind of computations could lead to considerable speedups due
-to the highly parallel execution of the code. However, the straightforward
+numerical PDE methods, such as Finite Volumes and Finite Elements. The adoption
+of GPUs for these kind of computations has already lead to considerable speedups due
+to the highly parallel execution of the code \cite{Reguly2015,ELSEN200810148,cohen2009fast}. However, the straightforward
 parallelisation of the scientific algorithms may not lead to optimal
 performance on GPUs. The SIMT abstraction exposes a number of techniques that
 can improve performance, one of which is the explicit management of the memory
 system of the GPU.\\
-The proper usage of the memory system for simulations is crucial to get good
-performance. The latency of global memory accesses is a bottleneck for a lot of
-kernels in modern scientific computations, thus we have to lower the impact of
-the memory transactions. Since we can't fully hide the latency with
-computations, we can either increase the number of memory transactions in
-flight (to more efficiently utilise bandwidth), or decrease the number of
-memory transactions with high latency. To achieve the latter goal we can use
-shared memory for CUDA thread blocks as an explicitly managed cache, because it
-has much lower latency than global memory. However, to get good performance we
-have to ensure that we can use these memories efficiently from all threads in
-the blocks.
 
-Most codes do one of two things: they use a straightforward parallelisation
-relying on either colouring or large temporary datasets to avoid two threads
-that run simultaneously accessing the same data, but these end up with poor
+In most finite volume algorithms, and low order finite element algorithms the ratio of computations to number of bytes is relatively low - at least compared to the ideal balance on modern GPUs. Therefore the proper usage of the memory system for such simulations is crucial to get good performance. High order finite elements usually have much higher computational requirements, thus memory bandwidth is less of a concern.
+The throughput of memory accesses is the main bottleneck for a large class of applications, thus our goal is to lower the impact of
+the memory transactions. Since in most applications of interest, there isn't enough computations to hide the cost of memory movement, we can either increase the number of memory transactions in
+flight (to more efficiently utilise bandwidth), or decrease the number of
+memory transactions. To achieve the latter goal, a common technique is the use of
+shared memory within CUDA thread blocks as an explicitly managed cache, because it
+has much higher bandwidth and lower latency than global memory. The challenge then is to maximise data re-use within shared memory, and optimise access patterns to both shared and global memory.
+
+Most codes take one of three approaches \cite{LULESH:spec,miniaero}: they use a straightforward parallelisation
+relying on (1) either colouring or (2) large temporary datasets to avoid two threads
+that run simultaneously accessing the same data, or (3) they use atomics to handle race conditions. The first two end up with poor
 data locality for most of the cases: one cannot have good reuse in reading
-data, but no conflicts (and no reuse) in writing it. The only advantage of this
-approach is that the parallelisation is simple, which means that it has lower
+data, but no conflicts (and no reuse) in writing it. Atomics are much more expensive operations than regular memory transactions, therefore in most cases lead to low throughput. The advantage of these
+approaches is that the parallelisation is simple, which means that they have lower
 overhead at the beginning to plan the execution of the kernel. However, if we
 spend more time for planning the execution strategy for the kernel, for example
 by altering the order in which the elements are processed we can significantly
 improve data locality. Better memory locality means that we can use cache lines
 more efficiently (with one read transaction we can read multiple pieces of data
 that we can use for the simulation) so that we end up with fewer memory
-transactions in total, which means less time spent waiting for data.\\
+transactions in total, which means higher overall throughput.\\
 Reordering and partitioning algorithms are already used for maximising data
 reuse in CPUs and minimising communication in distributed memory systems. In
 our work we use them to improve the data locality on GPUs, specifically within
@@ -57,7 +52,7 @@ contributions:
     elements into shared memory. We use hierarchical colouring to avoid data
     races.
   \item
-    We design a reordering algorithm based on partitioning that increases data
+    We design a reordering algorithm based on graph partitioning that increases data
     reuse within a thread block, also increasing shared memory utilisation.
   \item
     We implement a library that parallelises applications on unstructured meshes
@@ -107,9 +102,9 @@ of these libraries do use shared memory for improving data locality, however
 advanced techniques, such as reordering and partitioning studied in this work
 are not evaluated. 
 
-In work done by Castro et al. \cite{shallow_water} on implementing
+Work done by Castro et al. \cite{shallow_water} on implementing
 path-conservative Roe type high-order finite volume schemes to simulate shallow
-flows, they also used auxiliary accumulators to avoid race conflicts while
+flows uses auxiliary accumulators to avoid race conflicts while
 incrementing. Wu et al. \cite{wu2013complexity} introduce caching using the
 shared memory with partitioning (clustering), but they do not use colouring,
 instead, they use a duplication method similar to that of Lulesh and miniAero,
@@ -133,7 +128,7 @@ methods are proposed to address race conflicts: the first is to allocate large
 temporary arrays where the intermediate results (the increments) are placed,
 avoiding any race conditions, and to use a separate kernel to gather the
 results; the second is to use atomics. Both lead to increased warp divergence
-and high data latencies; and the use of the temporary array also leads to much
+and high data access latencies; and the use of the temporary array also leads to much
 more data being allocated and moved.
 
 In our work, instead of porting any specific computation, we present a general

@@ -16,30 +16,27 @@ The application consists of five parallel loops: \textbf{save\_soln},
 In our work we focus on \textbf{res\_calc} since it has indirect increments and
 about the 70\% of the time is spent in this kernel on GPUs with global
 colouring.  This is the most complex loop with both indirect reads and writes; it
-iterates through edges, and computes the flux through them. It is called 2000
+iterates through edges, and computes the flux through them using data accessed indirectly on cells. It is called 2000
 times during the total execution of the application and performs about 100
 floating-point operations per mesh edge. In each iteration, it reads 5 and
 increments 4 double values from each of the 2 indirectly accessed cells, and
 reads 2 double values from each of the 2 indirectly accessed nodes.
 \\
- The tests are executed on a mesh containing 2.8 million cells.
+ The tests are executed on a mesh with 2.8 million cells.
 
 \subsubsection{Volna}
 Volna is a shallow water simulation capable of handling the complete life-cycle
 of a tsunami (generation, propagation and run-up along the coast)
 \cite{dutykh2011volna}. The simulation algorithm works on unstructured
 triangular meshes and uses the finite volume method. Volna is written in C/C++
-and converted to use the OP2 library\cite{op2}. For Volna top three kernels
-where most time is spent: \textbf{computeFluxes}, \textbf{SpaceDiscretization}
+and converted to use the OP2 library\cite{op2}. Volna spends most time in three kernels: \textbf{computeFluxes}, \textbf{SpaceDiscretization}
 and \textbf{NumericalFluxes}. We focus on the \textbf{SpaceDiscretization}
-kernel since it has indirect increments and the 60\% of the time spent inside
-this step on GPU with global colouring. In each iteration,
+kernel that iterates on edges accessing data indirectly on cells, 60\% of total execution time is spent in this kernel. In each iteration,
 \textbf{SpaceDiscretization} reads 1 and increments 4 float values from each of
 the 2 indirectly accessed cells, and reads 7 float and 1 integer values directly.
 
 Tests are executed in single precision, on a mesh containing 2.4 million
-triangular cells, simulating a tsunami run-up to the US pacific coast. The
-kernel itself iterates over the edges and increments the cells.
+triangular cells, simulating a tsunami run-up to the US pacific coast.
 
 \subsubsection{BookLeaf}
 BookLeaf is a 2D unstructured mesh Lagrangian hydrodynamics application from the
@@ -50,9 +47,7 @@ large number of kernels with different access patterns such as indirect
 increments similar to increments inside \textbf{res\_calc} in Airfoil. For
 testing we used the SOD testcase with a 4 million element mesh. The top three
 kernels with the highest runtimes are \textbf{getq\_christiensen1},
-\textbf{getacc\_scatter}, \textbf{gather}. Among these there is only
-one kernel (\textbf{getacc\_scatter}) with indirect increments so we tested our
-optimisations on this kernel. This kernel reads 17 double values directly, and
+\textbf{getacc\_scatter}, \textbf{gather}. Among these (\textbf{getacc\_scatter}) has indirect increments, iterating on cells and incrementing data indirectly on vertices. This kernel reads 17 double values directly, and
 increments 4 double values on each of the 4 indirectly accessed nodes in each
 iteration.
 
@@ -75,12 +70,12 @@ Laboratory. LULESH approximates the hydrodynamics equations discretely by
 partitioning the spatial problem domain into a collection of volumetric elements
 defined by a mesh.
 
-Like miniAero, the mesh itself is structured (and generated in the code), but
+The mesh itself is structured (and generated in the code), but
 the algorithm doesn't take this into account and accesses the data through an
 eight-dimensional mapping for the hex8 (brick) elements.
 
-We measured the \textbf{IntegrateStressForElems} kernel that calculates the
-forces in the nodes. For each cell (in each iteration), it reads 3 double values
+We study the \textbf{IntegrateStressForElems} kernel that calculates the
+forces in the nodes. ITerating over cells, it reads 3 double values
 from each of the 8 indirectly accessed nodes, increments 3 double values for
 each node, reads 3 double values directly and writes 1 double value directly. In
 our measurements, we used a mesh with \num{4913000} edges and \num{5000211}
@@ -94,7 +89,7 @@ code for our measurements is to remove these parts from the kernel.
 
 miniAero \cite{miniaero} is a mini-application for the evaulation of programming
 models and hardware for next generation platforms from the Mantevo suite
-\cite{heroux2009improving}. MiniAero is an explicit (using 4th order
+\cite{heroux2009improving}. MiniAero is an explicit (4th order
 Runge-Kutta) unstructured finite volume code that solves the compressible
 Navier-Stokes equations. Both inviscid and viscous terms are included. The
 viscous terms can be optionally included or excluded. For miniAero meshes are
@@ -104,7 +99,7 @@ structured, the code itself uses unstructured mesh data structures and access
 patterns. This mini-application uses the Kokkos library
 \cite{CarterEdwards20143202}.
 
-For miniAero we tested the \textbf{compute\_face\_flux} kernel that computes the
+For miniAero we study the \textbf{compute\_face\_flux} kernel that computes the
 flux contributions of the faces and increments it with the appropriate cell flux
 values. The kernel iterates over the faces of the mesh, and accesses the cells
 indirectly. In each iteration, it reads 28 and increments 5 double values from

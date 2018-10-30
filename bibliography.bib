@@ -157,6 +157,107 @@ year={2009}
   title = {{miniAero CFD Mini-Application}},
   howpublished = {\url{https://github.com/Mantevo/miniAero}}
 }
+
+
+@inproceedings{sharma2015data,
+  title={Data layout optimization for portable performance},
+  author={Sharma, Kamal and Karlin, Ian and Keasler, Jeff and McGraw, James R and Sarkar, Vivek},
+  booktitle={European Conference on Parallel Processing},
+  pages={250--262},
+  year={2015},
+  organization={Springer}
+}
+
+@article{gibbs1976algorithm,
+  title={An algorithm for reducing the bandwidth and profile of a sparse matrix},
+  author={Gibbs, Norman E and Poole, Jr, William G and Stockmeyer, Paul K},
+  journal={SIAM Journal on Numerical Analysis},
+  volume={13},
+  number={2},
+  pages={236--250},
+  year={1976},
+  publisher={SIAM}
+}
+
+
+@inproceedings{Kraus:2014:ACC:2691158.2691164,
+ author = {Kraus, Jiri and Schlottke, Michael and Adinetz, Andrew and Pleiter, Dirk},
+ title = {Accelerating a C++ CFD Code with OpenACC},
+ booktitle = {Proceedings of the First Workshop on Accelerator Programming Using Directives},
+ series = {WACCPD '14},
+ year = {2014},
+ isbn = {978-1-4799-7023-0},
+ location = {New Orleans, Louisiana},
+ pages = {47--54},
+ numpages = {8},
+ url = {http://dx.doi.org/10.1109/WACCPD.2014.11},
+ doi = {10.1109/WACCPD.2014.11},
+ acmid = {2691164},
+ publisher = {IEEE Press},
+ address = {Piscataway, NJ, USA},
+ keywords = {C++, CFD, NVIDIA GPUs, OpenACC 2.0, accelerators, directives},
+} 
+
+@Article{Zegard2013,
+author="Zegard, Tom{\'a}s
+and Paulino, Glaucio H.",
+title="Toward GPU accelerated topology optimization on unstructured meshes",
+journal="Structural and Multidisciplinary Optimization",
+year="2013",
+month="Sep",
+day="01",
+volume="48",
+number="3",
+pages="473--485",
+abstract="The present work investigates the feasibility of finite element methods and topology optimization for unstructured meshes in massively parallel computer architectures, more specifically on Graphics Processing Units or GPUs. Challenges in the parallel implementation, like the parallel assembly race condition, are discussed and solved with simple algorithms, in this case greedy graph coloring. The parallel implementation for every step involved in the topology optimization process is benchmarked and compared against an equivalent sequential implementation. The ultimate goal of this work is to speed up the topology optimization process by means of parallel computing using off-the-shelf hardware. Examples are compared with both a standard sequential version of the implementation and a massively parallel version to better illustrate the advantages and disadvantages of this approach.",
+issn="1615-1488",
+doi="10.1007/s00158-013-0920-y",
+url="https://doi.org/10.1007/s00158-013-0920-y"
+}
+
+
+
+@Article{Reguly2015,
+author="Reguly, I. Z.
+and Giles, M. B.",
+title="Finite Element Algorithms and Data Structures on Graphical Processing Units",
+journal="International Journal of Parallel Programming",
+year="2015",
+month="Apr",
+day="01",
+volume="43",
+number="2",
+pages="203--239",
+abstract="The finite element method (FEM) is one of the most commonly used techniques for the solution of partial differential equations on unstructured meshes. This paper discusses both the assembly and the solution phases of the FEM with special attention to the balance of computation and data movement. We present a GPU assembly algorithm that scales to arbitrary degree polynomials used as basis functions, at the expense of redundant computations. We show how the storage of the stiffness matrix affects the performance of both the assembly and the solution. We investigate two approaches: global assembly into the CSR and ELLPACK matrix formats and matrix-free algorithms, and show the trade-off between the amount of indexing data and stiffness data. We discuss the performance of different approaches in light of the implicit caches on Fermi GPUs and show a speedup over a two-socket 12-core CPU of up to 10 times in the assembly and up to 6 times in the solution phase. We present our sparse matrix-vector multiplication algorithms that are part of a conjugate gradient iteration and show that a matrix-free approach may be up to two times faster than global assembly approaches and up to 4 times faster than NVIDIA's cuSPARSE library, depending on the preconditioner used.",
+issn="1573-7640",
+doi="10.1007/s10766-013-0301-6",
+url="https://doi.org/10.1007/s10766-013-0301-6"
+}
+@article{cohen2009fast,
+  title={A fast double precision CFD code using CUDA},
+  author={Cohen, J and Molemaker, M Jeroen},
+  journal={Parallel Computational Fluid Dynamics: Recent Advances and Future Directions},
+  pages={414--429},
+  year={2009},
+  publisher={DEStech Publications, Lancaster, PA}
+}
+
+@article{ELSEN200810148,
+title = "Large calculation of the flow over a hypersonic vehicle using a GPU",
+journal = "Journal of Computational Physics",
+volume = "227",
+number = "24",
+pages = "10148 - 10161",
+year = "2008",
+issn = "0021-9991",
+doi = "https://doi.org/10.1016/j.jcp.2008.08.023",
+url = "http://www.sciencedirect.com/science/article/pii/S0021999108004476",
+author = "Erich Elsen and Patrick LeGresley and Eric Darve",
+keywords = "GPU, Brook, Stream processing, Compressible flow, Euler equations"
+}
+
+
+
 @article{CarterEdwards20143202,
 title = "Kokkos: Enabling manycore performance portability through polymorphic memory access patterns ",
 journal = "Journal of Parallel and Distributed Computing ",

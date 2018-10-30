@@ -53,17 +53,17 @@
     locality).
 
     Unstructured mesh algorithms are notoriously difficult in this sense,
-    especially due to computations that indirectly modify data, leading to race
+    especially computations that indirectly update data, which leads to race
     conditions. In this work we address this problem through a number of
     optimisations on GPUs, specifically the use of the shared memory and a
     two-layered colouring strategy to cache the data. We also look at different
-    block layouts to analyse the trade-off between data reuse and the amount of
-    synchronisation.
+    block layouts to analyse the trade-off between data reuse and the number of
+    synchronisations.
 
-    We developed a standalone library that can transparently reorder the
+    We developed a library that can transparently reorder the
     operations done and data accessed by a kernel, without modifications to the
     algorithm by the user. Using this, we performed measurements on relevant
-    scientific kernels from different applications, such as Airfoil, Volna,
+    scientific kernels from different finite volume and finite element applications, such as Airfoil, Volna,
     Bookleaf, Lulesh and miniAero; using Nvidia Pascal and Volta GPUs. We
     observed significant speedups ($1.2\text{--}1.75\times$) compared to the
     original codes.
