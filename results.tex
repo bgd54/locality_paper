@@ -85,7 +85,9 @@ the relative speedup compared to the original OP2 version. In this case, the
 original version also used the shared memory approach, so the performance gain
 is caused by the reordering. In the original version $56\%$ of the total time is spent
 in \textbf{res\_calc}, therefore the achieved $1.2\times$ speedup on \textbf{res\_calc}
-causes about $1.1\times$ speedup on the whole application.
+causes about $1.1\times$ speedup on the whole application. The useful bandwidth in case
+of the best version of \textbf{res\_calc} reached $55\%$ of the peak stream bandwidth of
+the P100 GPU.
 
 % Figure \ref{fig:airfoil_bw-vs-bs_hier_large} shows performance variations at different block sizes with the hierarchical colouring approach. This kernel uses more registers ($52$ (SoA) and $48$ (AoS)) compared to global
 % colouring ($48$ and $40$), which leads to larger variations in occupancy and
@@ -289,8 +291,11 @@ can be better hidden by running warps from other blocks.
   \label{fig:volna_bw-vs-bs_hier}
 \end{figure}
 
-As can be seen from Figure \ref{fig:volna_speedup}, our implementation is 20\%
-faster than the original OP2 version.
+As can be seen from Figure \ref{fig:volna_speedup}, our implementation is $20\%$
+faster than the original OP2 version. The $20\%$ performance gain in 
+\textbf{SpaceDiscretization} results in $6\%$ increase regarding the whole 
+application. The useful bandwidth also increased and reached $30\%$ of the peak 
+stream bandwidth of the P100 GPU.
 
 % volna counters {{{ %
 % Block size: 448
@@ -389,7 +394,7 @@ faster than the original OP2 version.
       Indirect data layout &    AOS      &   SOA     &     AOS      &    SOA      &    SOA\\
       Block size &           448 & 448 & 448 & 448 & 128\\
       \hline
-                               Bandwidth (GB/s) &   $ 265$ &   $ 241$ &   $ 292$ &   $ 268$ & $119$\\
+                               Bandwidth (GB/s) &   $ 133$ &   $ 120$ &   $ 146$ &   $ 134$ & $119$\\
                              Achieved Occupancy &   $0.82$ &   $0.81$ &   $0.80$ &   $0.80$  &   $0.68$                                                    \\
                       Warp Execution Efficiency &   $  98\%$ &   $  98\%$ &   $  97\%$ &   $  97\%$ &   $  65\%$                                            \\
         Global Memory Read Transactions &   $ 9114\text{k}$ &   $ 9166\text{k}$ &   $ 7493\text{k}$ &   $ 7617\text{k}$ &  $9504\text{k}$               \\
