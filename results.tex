@@ -652,7 +652,7 @@ occupancy is this low.
 On Volta, we achieved $1.84\times$ speedup in the kernel compared to the
 original code with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth).
 
-\subsubsection{Analysis of MiniAero}
+\subsubsection{Analysis of miniAero}
 
 The \textbf{compute\_face\_flux} kernel is the most computationally intensive
 among the ones we tested: it uses $165$ registers in hierarchical  colouring
@@ -706,6 +706,12 @@ The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
 outperformed both (Figure \ref{fig:mini_aero_speedup_small-cache}), for the same
 reason as in case of LULESH.
+
+In the original version $22\%$ of the total time is spent in
+\textbf{compute\_face\_flux}, therefore the achieved $1.22\times$ kernel speedup
+causes about $1.04\times$ speedup on the whole application. The useful bandwidth
+in case of the best version of \textbf{compute\_face\_flux} ($117$ GB/s) reached
+$24\%$ of the peak stream bandwidth of the P100 GPU.
 
 % mini_aero counters {{{ %
 % Block size: 128
