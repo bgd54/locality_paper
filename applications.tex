@@ -75,10 +75,10 @@ the algorithm doesn't take this into account and accesses the data through an
 eight-dimensional mapping for the hex8 (brick) elements.
 
 We study the \textbf{IntegrateStressForElems} kernel that calculates the
-forces in the nodes. ITerating over cells, it reads 3 double values
+forces in the nodes. Iterating over cells, it reads 3 double values
 from each of the 8 indirectly accessed nodes, increments 3 double values for
 each node, reads 3 double values directly and writes 1 double value directly. In
-our measurements, we used a mesh with \num{4913000} edges and \num{5000211}
+our measurements, we used a mesh with \num{4913000} cells and \num{5000211}
 nodes.
 
 The original CUDA version of the code contracted this kernel with

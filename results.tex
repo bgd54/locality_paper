@@ -560,6 +560,12 @@ implementation, and also uses much less memory. Although the original needs less
 synchronisation, the resulting warp divergence also cannot be hidden if the
 occupancy is this low.
 
+In the original version $37\%$ of the total time is spent in
+\textbf{IntagrateStressForElems}, therefore the achieved $1.75\times$ speedup on
+the kernel causes about $1.28\times$ speedup on the whole application. The
+useful bandwidth in case of the best version of \textbf{IntegrateStressForElems}
+reached $20\%$ of the peak stream bandwidth of the P100 GPU.
+
 % lulesh counters {{{ %
 % Block size: 320
 % Hier:
@@ -627,7 +633,7 @@ occupancy is this low.
       Block size &           320 & 320 & 320 & 320 & 64\\
       \hline
                                Bandwidth (GB/s) &   $ 124$ &   $ 168$ &   $ 129$ &   $ 147$ & $97$\\
-                               Runtime (ms)     &   $5.45$ & $4.00$ & $4.98$ & $4.34$ & TODO \\
+                               Runtime (ms)     &   $5.45$ & $4.00$ & $4.98$ & $4.34$ & $6.98$ \\
                              Achieved Occupancy &   $0.15$ &   $0.29$ &   $0.15$ &   $0.30$ & $0.24$\\
                       Warp Execution Efficiency &   $  98\%$ &   $  97\%$ &   $ 91\%$ &   $  90\%$ & $100\%$\\
         Global Memory Read Transactions (total) &   $33572\text{k}$ & $35408\text{k}$ &   $22888\text{k}$ &   $25027\text{k}$  & $16072\text{k}$\\
@@ -779,7 +785,8 @@ $24\%$ of the peak stream bandwidth of the P100 GPU.
       Block size &           128 & 128 & 128 & 128 & 256\\
       \hline
                                Bandwidth (GB/s)&    $  67$ &   $ 84$ &   $ 117$ &   $ 113$ & $96$\\
-                               Runtime (ms)    &    $19.09$ & $15.38$ & $11.04$ & $11.38$ & TODO \\
+                               Runtime (ms)    &    $19.09$ & $15.38$ & $11.04$
+                               & $11.38$ & $13.39$\\
                              Achieved Occupancy&    $0.06$ & $0.06$ & $0.12$ & $0.12$  & $0.23$\\
                       Warp Execution Efficiency&    $91\%$ & $84\%$ & $88\%$ & $85\%$  & $91\%$\\
                 Global Memory Read Transactions&    $73561\text{k}$ & $82028\text{k}$ & $53403\text{k}$ & $77091\text{k}$  & $87368\text{k}$\\
