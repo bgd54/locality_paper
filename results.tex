@@ -654,9 +654,12 @@ reached $20\%$ of the peak stream bandwidth of the P100 GPU.
   \label{tab:lulesh_counters_hier}
 \end{table}
 
-% TODO application speedup
+% TODO reformulate this paragraph
 On Volta, we achieved $1.84\times$ speedup in the kernel compared to the
-original code with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth).
+original code with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth). In the
+original version $35\%$ of the total time is spent in
+\textbf{IntegrateStressForElems}, therefore the achieved kernel speedup causes
+about $1.29\times$ speedup on the whole application.
 
 \subsubsection{Analysis of miniAero}
 
