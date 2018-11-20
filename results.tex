@@ -808,9 +808,12 @@ $24\%$ of the peak stream bandwidth of the P100 GPU.
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
-% TODO application speedup
+% TODO reformulate this paragraph
 On Volta, we achieved $1.87\times$ speedup in the kernel compared to the
-original code with $263$ GB/s bandwidth ($35\%$ of the peak bandwidth).
+original code with $263$ GB/s bandwidth ($35\%$ of the peak bandwidth). In the
+original version $27\%$ of the total time is spent in
+\textbf{compute\_face\_flux}, therefore the kernel speedup causes about
+$1.24\times$ speedup on the whole application.
 
 
 \subsubsection{Analysis of structured meshes}
