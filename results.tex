@@ -458,6 +458,10 @@ global transactions, for reads and writes, respectively. This large difference
 between reads and writes is also because, like \textbf{SpaceDiscretization},
 \textbf{getacc\_scatter} does not read values indirectly.
 
+The best performance we achieved with \textbf{getacc\_scatter} results in  about
+$2\%$ performance increase regarding the whole application. The useful bandwidth
+also increased and reached $83\%$ of the peak stream bandwidth of the P100 GPU.
+
 %shared mem: 17KB, with metis: 10.8
 
 
