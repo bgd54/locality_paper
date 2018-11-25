@@ -206,39 +206,6 @@ the P100 GPU.
 Although the number of block colours increased with reordering, it is only a
 problem when the size of the dataset is so small that there are too few blocks for some colours to saturate the GPU.
 
-% Despite the higher locality, in most cases, the AoS version also uses more
-% registers (sometimes the compiler can optimise the register count of both
-% versions to the same number), and this may lead to lower occupancy. Hence it is
-% not always obvious which is the better choice.
-
-
-% \begin{table}[Htbp]
-%   \centering
-%   \resizebox{\columnwidth}{!}{
-%   \begin{tabular}{|R{2.5cm}|cc|c|c|}
-%     \hline
-%       Reordering  & no & no & partition & partition\\
-%       Indirect data layout &    AOS      &   AOS     &     AOS      &    SOA\\
-%       Block size &           480 & 448 & 448 & 448 \\
-%       \hline
-
-%                              Achieved Occupancy&    $0.44$ &   $0.52$ &      $0.59$ &   $0.42$\\
-%         Device Memory Read Transactions (total)&    $21142\text{k}$ &   $21192\text{k}$ &      $13964\text{k}$ &   $14406\text{k}$\\
-%        Device Memory Write Transactions (total)&    $ 5807\text{k}$ &   $ 57883\text{k}$ &      $ 3397\text{k}$ &   $ 3669\text{k}$\\
-%           Issue Stall Reasons (Synchronization)&    $  11\%$ &   $   9\%$ &      $  14\%$ &   $  14\%$\\
-%              Issue Stall Reasons (Data Request)&    $  69\%$ &   $  68\%$ &      $  61\%$ &   $  63\%$\\
-%                         Number of Block Colours&    $       4$ &   $       5$ &      $       8$ &   $       8$\\
-%                                    Reuse Factor&    $       2$ &   $       2$ &      $     3.6$ &   $     3.6$\\
-%                        Number of Thread Colours&    $       3$ &   $       3$ &      $       4$ &   $       4$\\
-%                                       Bandwidth&    $ 212\,\text{GB/s}$ &   $ 227\,\text{GB/s}$ &      $ 270\,\text{GB/s}$ &   $ 225\,\text{GB/s}$\\
-%     \hline
-%   \end{tabular}
-%   }
-%   \caption{Collected performance metrics of the hierarchical colouring
-%   implementation of the \textbf{res\_calc} kernel.}
-%   \label{tab:airfoil_counters_hier}
-% \end{table}
-
 When running on the newer Volta GPU architecture, the results look similar
 (Figure \ref{fig:airfoil_bw-vs-bs_hier_large_volta}); the absolute value of the
 bandwidths are (understandably) higher.
