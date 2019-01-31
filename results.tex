@@ -219,9 +219,11 @@ bandwidths are (understandably) higher.
   \label{fig:airfoil_bw-vs-bs_hier_large_volta}
 \end{figure}
 
-% TODO application speedup
 On Volta, we achieved $1.28\times$ speedup in the kernel compared to the
-original code with $446$ GB/s bandwidth ($60\%$ of the peak bandwidth).
+original code with $446$ GB/s bandwidth ($60\%$ of the peak bandwidth). 
+Since \textbf{res\_calc} takes around $54\%$ of the total run time in the
+original code this speedup results in $1.14\times$ speedup on the
+whole application.
 
 \subsubsection{Analysis of Volna}
 
@@ -401,7 +403,9 @@ stream bandwidth of the P100 GPU.
 \end{figure}
 
 On Volta, the performance of the kernel was $462$ GB/s ($62\%$ of the peak
-bandwidth).
+bandwidth). Which means $1.18\times$ speedup on the kernel and $1.05\times$ 
+speedup on the whole application compared to the original.
+
 
 
 \subsubsection{Analysis of BookLeaf}
@@ -491,7 +495,9 @@ also increased and reached $83\%$ of the peak stream bandwidth of the P100 GPU.
 \end{figure}
 
 On Volta, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
-bandwidth).
+bandwidth which results in $1.03\times$ speedup on the whole application compared
+to the original.
+
 
 \subsubsection{Analysis of LULESH}\label{sec:analysis-of-lulesh}
 
