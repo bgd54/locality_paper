@@ -680,8 +680,9 @@ version (Figure \ref{fig:mini_aero_bw_small-cache}).
   \caption{The \textbf{compute\_face\_flux} kernel bandwidth on a mesh with
   $6242304$ faces. The shared memory was only used to cache the increments,
   reducing the need for large shared memory size. The kernel didn't fit into the
-  shared memory with block size larger than $320$ or if not reordered because the
-  large amount of shared memory needed.}
+  shared memory with block size larger than $384$ or if not reordered because
+  the large amount of shared memory needed; these are shown here with $0$
+  bandwidth.}
   \label{fig:mini_aero_bw_small-cache}
 \end{figure}
 
@@ -741,7 +742,7 @@ $24\%$ of the peak stream bandwidth of the P100 GPU.
 
 \begin{figure}[Htbp]
   \centering
-  \includegraphics[width=6cm]{fig/mini_aero_speedup_nocache.eps}
+  \includegraphics{fig/mini_aero_speedup_nocache.eps}
   \caption{The \textbf{compute\_face\_flux} kernel speedup compared to the
   original code that was using atomic adds, on a mesh with
   $6242304$ faces. The shared memory was only used to cache the increments,
