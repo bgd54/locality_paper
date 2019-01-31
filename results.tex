@@ -698,10 +698,10 @@ outperformed both (Figure \ref{fig:mini_aero_speedup_small-cache}), for the same
 reason as in case of LULESH.
 
 In the original version $22\%$ of the total time is spent in
-\textbf{compute\_face\_flux}, therefore the achieved $1.22\times$ kernel speedup
-causes about $1.04\times$ speedup on the whole application. The useful bandwidth
-in case of the best version of \textbf{compute\_face\_flux} ($117$ GB/s) reached
-$24\%$ of the peak stream bandwidth of the P100 GPU.
+\textbf{compute\_face\_flux}, therefore the achieved $1.75\times$ kernel speedup
+causes about $1.10\times$ speedup on the whole application. The useful bandwidth
+in case of the best version of \textbf{compute\_face\_flux} ($168$ GB/s) reached
+$34\%$ of the peak stream bandwidth of the P100 GPU.
 
 % mini_aero counters {{{ %
 % Block size: 128
@@ -748,7 +748,7 @@ $24\%$ of the peak stream bandwidth of the P100 GPU.
 
 \begin{figure}[Htbp]
   \centering
-  \includegraphics{fig/mini_aero_speedup_nocache.eps}
+  \includegraphics[width=9cm]{fig/mini_aero_speedup_nocache.eps}
   \caption{The \textbf{compute\_face\_flux} kernel speedup compared to the
   original code that was using atomic adds, on a mesh with
   $6242304$ faces. The shared memory was only used to cache the increments,
