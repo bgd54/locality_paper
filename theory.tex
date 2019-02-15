@@ -345,14 +345,14 @@ them, and within this, the indices of the partitions themselves.
 
 \subsection{Further optimizations}\label{optimisations}
 
-\noindent There are a number of further optimizations we introduced to improve 
+\noindent There are a number of further optimizations we introduced to improve
 performance. \textbf{[Reword - I do not understand what you are saying here]}
-During the load to and write from shared memory, in the case where 
-the subsequent threads access addresses that are next to each other (the case 
-when both loops are parallelised, as described in Subsection
-\ref{shared-memory-approach}), we can make use of CUDA's built-in vector
-types (\lstinline!float2!, \lstinline!float4! and \lstinline!double2!) to load
-and write larger chunks (16 bytes) of data at a time. \textbf{[end-reword]}
+During the load to and write from shared memory, in the case where the
+subsequent threads access addresses that are next to each other (for example,
+when AoS layout is used and the size of the data points is big enough), we can
+make use of CUDA's built-in vector types (\lstinline!float2!, \lstinline!float4!
+and \lstinline!double2!) to load and write larger chunks (16 bytes) of data at a
+time. \textbf{[end-reword]}
 
 When updating the shared memory with increments, the threads within a block can 
 be sorted by their color. Then threads with the same color will be next to each 
