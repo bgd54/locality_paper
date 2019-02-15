@@ -336,12 +336,13 @@ Due to the way global loads and stores work on the GPU, what actually affects
 performance is not the number of data points accessed, but rather the number of
 cache lines (of size 32 bytes on the hardware used) that are accessed. A simple 
 heuristic reordering of data points is used to account for this. 
-\textbf{[Re-word]}The idea is to group data points together that are 
-read/written by the same set of blocks, especially a set of more than one block, 
-since any inefficiencies in that case will count more than once. To achieve 
-this, we simply sort the data points by the number of partitions that write 
-them, and within this, the indices of the partitions themselves. 
-\textbf{[end Re-word]}
+
+\textbf{[Re-word]}The idea is to group data points together that are
+read/written by the same set of blocks. This is more important when multiple
+blocks access the same group of data points, since any cache inefficiencies will
+count more than once. To achieve this, we simply sort the data points by the
+number of blocks that write them, and within this, the indices of the blocks
+themselves. \textbf{[end Re-word]}
 
 \subsection{Further optimizations}\label{optimisations}
 
