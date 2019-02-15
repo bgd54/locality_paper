@@ -79,8 +79,8 @@ threads, the number of thread colours and the offsets of the blocks (because the
 variable block size).
 
 The block offsets should be used to calculate the iteration variable, so instead
-of \lstinline!blockDim.x * blockIdx.x + threadIdx.x!, it becomes
-\lstinline!block_offsets[blockIdx.x] + threadIdx.x!.
+of: \lstinline!blockDim.x * blockIdx.x + threadIdx.x!, \\
+\noindent it becomes \lstinline!block_offsets[blockIdx.x] + threadIdx.x!.
 
 The skeleton for the cache-in and cache-out code is composed of nested
 conditionals that depend on the type of the data. Since the user knows the type,

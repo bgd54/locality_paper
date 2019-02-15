@@ -13,7 +13,7 @@
 \usepackage{floatpag}
 \usepackage{siunitx}
 \usepackage{url}
-
+\usepackage{verbatim}
 \usepackage{setspace}
 \doublespacing
 
@@ -28,11 +28,11 @@
 
   \title{Improving Locality of Unstructured Mesh Algorithms on GPUs}
 
-  \author[1,2]{András Attila Sulyok\corref{corres}}
+  \author[1,2]{A.A. Sulyok\corref{corres}}
   \ead{sulyok.andras.attila@itk.ppke.hu}
-  \author[1,2]{Gábor Dániel Balogh}
-  \author[1]{István Zoltán Reguly}
-  \author[3]{Gihan R Mudalige}
+  \author[1,2]{G.D. Balogh}
+  \author[1]{I.Z. Reguly}
+  \author[3]{G.R. Mudalige}
   \address[1]{
     Faculty of Information Technology and Bionics,
     Pázmány Péter Catholic University,
@@ -50,44 +50,186 @@
   }
   \cortext[corres]{Corresponding author}
 
-  \begin{abstract}
-    To most efficiently utilize modern parallel architectures, the memory access
-    patterns of algorithms must make heavy use of the cache architecture:
-    successively accessed data must be close in memory (spatial locality) and
-    one piece of data must be reused as many times as possible (temporal
-    locality).
+\begin{abstract}
 
-    Unstructured mesh algorithms are notoriously difficult in this sense,
-    especially computations that indirectly update data, which leads to race
-    conditions. In this work we address this problem through a number of
-    optimisations on GPUs, specifically the use of the shared memory and a
-    two-layered colouring strategy to cache the data. We also look at different
-    block layouts to analyse the trade-off between data reuse and the number of
-    synchronisations.
+\noindent Unstructured-mesh based numerical solvers such as finite volume and 
+finite element algorithms forms an important class of applications for many 
+scientific and engineering domains. The key difficulty in achieving higher 
+performance from these applications is the indirect accesses that lead to 
+data-races when parallelized. Current, methods for handling these data-races 
+lead to reduced parallelism and suboptimal performance. Particularly on modern 
+many-core architectures, such as GPUs, with increasing core/thread counts, 
+reducing data movement and exploiting memory locality is vital for gaining good 
+performance. 
 
-    We developed a library that can transparently reorder the
-    operations done and data accessed by a kernel, without modifications to the
-    algorithm by the user. Using this, we performed measurements on relevant
-    scientific kernels from different finite volume and finite element applications, such as Airfoil, Volna,
-    Bookleaf, Lulesh and miniAero; using Nvidia Pascal and Volta GPUs. We
-    observed significant speedups ($1.2\text{--}1.75\times$) compared to the
-    original codes.
-  \end{abstract}
+In this work we present novel locality-exploiting optimizations for the 
+efficient execution of unstructured-mesh algorithms on GPUs. Building on a 
+two-layered coloring strategy for handling data races, we introduce novel 
+reordering and partitioning strategies to further improve efficient execution. 
+The new optimizations are then applied to several well established 
+unstructured-mesh applications, investigating their performance on NVIDIA's 
+latest P100 and V100 GPUs. We demonstrate significant speedups 
+($1.2\text{--}1.75\times$) compared to the state-of-the-art. A range of 
+performance metrics are benchmarked including runtime, memory transactions, 
+achieved bandwidth performance, GPU occupancy and data reuse factors and 
+are used to understand and explain the key factors impacting performance. The 
+optimized algorithms are implemented as an open-source software library and 
+we illustrate its use for improving performance of existing or new 
+unstructured-mesh applications.
+\end{abstract}
 
-  \begin{keyword}
-    finite volume \sep finite element \sep race condition \sep GPU
-  \end{keyword}
+\begin{keyword}
+finite volume \sep finite element \sep race condition \sep GPU
+\end{keyword}
 
 \end{frontmatter}
 
+\section{Introduction}\label{introduction}
 
-\input{content}
+\input{introduction}
+
+\section{Parallelisation on GPUs}\label{parallelisation-on-gpu}
+
+\input{theory}
+
+\section{Performance}\label{performance}
+
+\input{performance}
+
+
+% HERE **********************
+\section{Conclusion}\label{conclusion}
+
+In this work we presented a number of novel locality-exploiting optimizations 
+for the efficient execution of unstructured-mesh algorithms on GPUs. The key 
+focus was to improve performance of kernels with indirect increment data-access 
+patterns. We build on well known techniques such as data-layouts (AoS and SoA), 
+graph bandwidth minimizing algorithms, global and hierarchical coloring 
+approaches, exploring efficient execution strategies. A novel reordering 
+algorithm which uses k-way recursive partitioning, together with the use of GPU 
+share-memory implementing a hierarchical coloring method is designed to further 
+improve data reuse within CUDA thread blocks.
+
+The new optimizations are then applied to several well established unstructured-
+mesh applications, investigating their performance on NVIDIA’s latest P100
+and V100 GPUs. A range of performance metrics were benchmarked including 
+runtime, memory transactions, achieved bandwidth performance, GPU occupancy and 
+data reuse factors and are used to understand and explain the key factors 
+impacting performance.
+
+When comparing the performance of global coloring to that of hierarchical 
+coloring (with shared memory), we demonstrated that the latter approach 
+consistently performed better. This was due to its ability to exploit the 
+temporal locality in indirectly accessed data by avoiding data races in shared 
+memory with synchronization within thread blocks rather than different kernel 
+launches.
+
+Analyzing the performance of reordering based on GPS renumbering and 
+partitioning showed that former improves global coloring with increasing 
+spatial reuse, while the latter can significantly improve the shared memory 
+approach by increasing data reuse within thread blocks. In this case, we 
+see smaller shared memory usage and fewer global memory transactions.
+
+We also see that there is a trade-off between high data reuse and large numbers 
+of thread colors in hierarchical coloring. This is especially pronounced in 3D 
+applications, and when the achieved occupancy is low: the more thread colors a 
+block has, the more synchronizations it will need, the latency of which can be 
+hard to hide when there are few eligible warps.
+
+The locality exploiting optimizations detailed in this paper enables to 
+achieve performance gains of $10\%$ (Airfoil), $20\%$ (Volna), $75\%$ 
+(Bookleaf), $75\%$ (Lulesh) and $25\%$ (miniAero) over the original 
+implementations on the GPUs tested. These results significantly advance the 
+state of the art, demonstrating that the algorithmic patterns used in most 
+current implementations (particularly in case of US DoE codes represented by 
+LULESH and MiniAero) could be significantly improved upon by the adoption of 
+two-level coloring schemes and partitioning for increased data reuse.
+
+When carrying out this work, it had become clear that partitioning algorithms in
+traditional libraries such as Metis and Scotch were not particularly well suited
+for producing such small partition sizes. As potential future work, we wish to
+explore algorithms that are better optimized for this purpose. The performance
+of these partitioning algorithms was also low - parallelizing this could be
+another interesting challenge. Finally, we are planning to integrate these
+algorithms into the OP2 library, so they can be automatically deployed on
+applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
+or Rolls-Royce Hydra.
+
+The optimized algorithms are implemented as an open-source software 
+library~\cite{library}. Appendix~\ref{library-implementation} illustrate its 
+use for improving performance of existing or new unstructured-mesh applications.
+
+
+% We investigated methods of accelerating parallel scientific computations on
+% unstructured meshes, specifically looking at improving the performance of
+% kernels with indirect increment access patterns.
+
+% We considered a number of well-known techniques, such as AoS and SoA, graph 
+% bandwidth minimizing algorithms, global and hierarchical coloring approaches. 
+% We designed a reordering algorithm which uses k-way recursive partitioning to 
+% improve data reuse within CUDA thread blocks.
+
+% We implemented a library that can automatically (without major modifications
+% from the part of the user) parallelize serial user code, avoiding data races
+% using global and hierarchical coloring. It uses optimizations specifically
+% targeting GPUs, such as caching in shared memory, reordering by colors to 
+% reduce warp divergence and using vector types to more efficiently utilize
+% available global memory bandwidth.
+
+% Using this library, we analyzed the performance of our algorithms on a number of
+% representative unstructured mesh applications varying a number of parameters,
+% such as the different thread block sizes and data layouts (Array of Structures
+% versus Structure of Arrays).
+
+% When comparing the performance of global and hierarchical coloring (shared
+% memory caching) approach, the shared memory approach consistently performed
+% better, since it could exploit the temporal locality in indirectly accessed data
+% by avoiding data races in shared memory with synchronization within thread
+% blocks rather than different kernel launches.
+
+% We also analyzed the performance of reordering based on GPS renumbering and
+% partitioning. The former improves global coloring with increasing spatial
+% reuse, while the latter can significantly improve the shared memory approach by
+% increasing data reuse within thread blocks, which results in smaller shared
+% memory and fewer global memory transactions.
+
+% We have shown that there is a trade-off between high data reuse and large
+% numbers of thread colors in hierarchical coloring that is especially
+% pronounced in 3D applications, and when the achieved occupancy is low: the more 
+% thread colors a block has, the more synchronizations it will need, the latency 
+% of which can be hard to hide when there are few eligible warps.
+
+% Using our methods, we were able to achieve performance gains of $10\%$
+% (Airfoil), $20\%$ (Volna), $75\%$ (Bookleaf), $75\%$ (Lulesh) and $25\%$
+% (miniAero) over the original implementations. These results significantly
+% advance the state of the art, demonstrating that the algorithmic patterns used
+% in most current implementations (particularly in case of US DoE codes
+% represented by LULESH and MiniAero) could be significantly improved upon by the
+% adoption of two-level coloring schemes and partitioning for increased data
+% reuse.
+% 
+% When carrying out this work, it had become clear that partitioning algorithms in
+% traditional libraries such as Metis and Scotch were not particularly well suited
+% for producing such small partition sizes. As potential future work, we wish to
+% explore algorithms that are better optimized for this purpose. The performance
+% of these partitioning algorithms was also low - parallelizing this could be
+% another interesting challenge. Finally, we are planning to integrate these
+% algorithms into the OP2 library, so they can be automatically deployed on
+% applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
+% or Rolls-Royce Hydra.
+
+% vim:set et sw=2 ts=2 tw=80:
 
 \section*{Acknowledgements}
-Istv\'an Reguly was supported by the J\'anos Bolyai Research Scholarship of the Hungarian Academy of Sciences. Project no. PD 124905 has been implemented with the support provided from the National Research, Development and Innovation Fund of Hungary, financed under the PD\_17 funding scheme. The authors would like to acknowledge the use of
-the University of Oxford Advanced Research Computing (ARC) facility in carrying
-out this work \url{http://dx.doi.org/10.5281/zenodo.22558}. The research has
-been supported by the European Union, co-financed by the European Social Fund
+\noindent Istv\'an Reguly was supported by the J\'anos Bolyai Research 
+Scholarship of the Hungarian Academy of Sciences. Project no. PD 124905 has been 
+implemented with the support provided from the National Research, Development 
+and Innovation Fund of Hungary, financed under the PD\_17 funding scheme. Gihan 
+Mudalige was supported by the Royal Society Industrial Fellowship Scheme 
+(INF/R1/180012). The authors would like to acknowledge the use of the University 
+of Oxford Advanced Research Computing (ARC) facility in carrying out this work 
+\url{http://dx.doi.org/10.5281/zenodo.22558}. The research has been supported 
+by the European Union, co-financed by the European Social Fund 
 (EFOP-3.6.2-16-2017-00013).
 %
 % ---- Bibliography ----
@@ -95,6 +237,7 @@ been supported by the European Union, co-financed by the European Social Fund
 \bibliographystyle{elsarticle-num}
 \bibliography{bibliography}
 
+\pagebreak
 %
 % ---- Appendix ----
 %
@@ -103,8 +246,6 @@ been supported by the European Union, co-financed by the European Social Fund
 \section{Library implementation}\label{library-implementation}
 
 \input{implementation}
-
-
 \input{kernel_rewrite_guide.tex}
 
 \end{document}

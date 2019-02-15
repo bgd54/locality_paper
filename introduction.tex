@@ -1,66 +1,200 @@
-To satisfy the computational needs of scientific algorithms, it is increasingly
-necessary to parallelise their solution on modern multi-core CPUs, and GPUs. In
-the past ten years since the first release of the CUDA language extension for
-C/C++, GPUs became widely used for high performance and scientific
-computations. CUDA provides a low level abstraction commonly referred to as
-Single Instruction Multiple Threads (SIMT), which gives us fine grained control
-over GPU architectures. \\
-A significant class of scientific applications operate on unstructured meshes,
-which are commonly represented as sets and explicit connections between them. Computations generally iterate over elements of a set (e.g. faces), performing the same computations, on different data; they can
-access data on the set which they operate on (e.g. fluxes defined on the faces), or, using indirections, data
-defined on other sets (such as coordinate data on connected vertices). In the latter case multiple threads may try to modify
-the same data, leading to race conditions. This algorithmic pattern is the
-focus of our work: operations on sets that read and most importantly
-\emph{increment} data indirectly on other sets. These operations are common in
-numerical PDE methods, such as Finite Volumes and Finite Elements. The adoption
-of GPUs for these kind of computations has already lead to considerable speedups due
-to the highly parallel execution of the code \cite{Reguly2015,ELSEN200810148,cohen2009fast}. However, the straightforward
-parallelisation of the scientific algorithms may not lead to optimal
-performance on GPUs. The SIMT abstraction exposes a number of techniques that
-can improve performance, one of which is the explicit management of the memory
-system of the GPU.\\
+% Improving Locality of Unstructured Mesh Algorithms on GPUs
 
-In most finite volume algorithms, and low order finite element algorithms the ratio of computations to number of bytes is relatively low - at least compared to the ideal balance on modern GPUs. Therefore the proper usage of the memory system for such simulations is crucial to get good performance. High order finite elements usually have much higher computational requirements, thus memory bandwidth is less of a concern.
-The throughput of memory accesses is the main bottleneck for a large class of applications, thus our goal is to lower the impact of
-the memory transactions. Since in most applications of interest, there isn't enough computations to hide the cost of memory movement, we can either increase the number of memory transactions in
-flight (to more efficiently utilise bandwidth), or decrease the number of
-memory transactions. To achieve the latter goal, a common technique is the use of
-shared memory within CUDA thread blocks as an explicitly managed cache, because it
-has much higher bandwidth and lower latency than global memory. The challenge then is to maximise data re-use within shared memory, and optimise access patterns to both shared and global memory.
+\noindent Unstructured mesh solvers, particularly applied to the solution of 
+finite difference, finite volume or finite element algorithms, form the basis 
+of numerical simulation applications in a vast area of important scientific 
+domains, from modeling the flow of blood in the body, the flow past an aircraft, 
+to ocean circulation and the simulation of Tsunamis. Significant computational 
+resources are required for the execution of numerical algorithms on these highly 
+detailed (usually three-dimensional) meshes. The solution involves iterating 
+over millions of elements (such as mesh edges, nodes, etc.) to reach the desired 
+accuracy or resolution. The key distinguishing feature of these applications is 
+that operations over mesh elements makes use of explicit connectivity 
+information between elements to access data defined on neighboring elements. 
+This is in contrast to the use of stencils in structured-mesh applications where 
+the regular geometry of the mesh implicitly provides the connectivity 
+information. As such, iterations over unstructured-meshes leads to highly 
+irregular patterns of data accesses over the mesh, characterized by indirect 
+array accesses. For example, computations over the mesh involve iterating over 
+elements of a set (e.g. faces), performing the same computations, on different 
+data, accessing/modifying data on the set which they operate on (e.g. fluxes 
+defined on the faces), or, using indirections accessing/modifying data defined 
+on other sets (such as coordinate data on connected vertices). These indirect 
+accesses are particularly difficult to parallelize, where multiple threads may 
+try to modify the same data, leading to data races. 
 
-Most codes take one of three approaches \cite{LULESH:spec,miniaero}: they use a straightforward parallelisation
-relying on (1) either colouring or (2) large temporary datasets to avoid two threads
-that run simultaneously accessing the same data, or (3) they use atomics to handle race conditions. The first two end up with poor
-data locality for most of the cases: one cannot have good reuse in reading
-data, but no conflicts (and no reuse) in writing it. Atomics are much more expensive operations than regular memory transactions, therefore in most cases lead to low throughput. The advantage of these
-approaches is that the parallelisation is simple, which means that they have lower
-overhead at the beginning to plan the execution of the kernel. However, if we
-spend more time for planning the execution strategy for the kernel, for example
-by altering the order in which the elements are processed we can significantly
-improve data locality. Better memory locality means that we can use cache lines
-more efficiently (with one read transaction we can read multiple pieces of data
-that we can use for the simulation) so that we end up with fewer memory
+Previous work has utilized one of three approaches for handling data races 
+during parallization~\cite{LULESH:spec,miniaero}: (1) use coloring where the 
+iteration set is ``colored'' such that no two iterations of the same color 
+modify the same mesh element indirectly, followed by parallel execution of the 
+iterations with the same color, (2) use large temporary datasets to avoid two 
+threads that run simultaneously accessing the same data, or (3) use atomics to 
+handle race conditions. However, the amount of parallelism available to be 
+exploited with the above methods have become increasingly limited on modern and 
+emerging massively parallel multi-core and many-core architectures. The 
+performance gains have been limited particularly on many-core processors such as 
+GPUs with thousands of low-power cores, but with modest memory-bandwidth. 
+Thus, reducing data movement and exploiting memory locality during execution is 
+vital on such devices. On GPUs, the first two techniques, coloring or using 
+temporary datasets, end up with poor data locality as one cannot have good data 
+reuse in both reading data as well as writing data without conflicts. The third 
+method, atomics are much more expensive operations than regular memory 
+transactions and therefore usually lead to low throughput. 
+
+In this paper we explore novel data-movement avoiding and locality exploiting 
+algorithms for improving performance of unstructured-mesh applications on GPUs. 
+Identifying that the throughput of memory transactions is the main bottleneck, 
+we demonstrate how superior execution strategies can be obtained by utilizing 
+a combination of techniques from (1) element reordering at thread-block level, 
+(2) use of GPU shared memory as an explicitly managed cache and (3) use of 
+partitioning algorithms for thread-block formation. We show how these allows us 
+to maximise data re-use to the higher-bandwith shared memory, and optimize 
+access patterns to both shared and GPU global memory. More specifically, we make 
+the following contributions:
+\begin{enumerate}
+\item We adopt a caching mechanism on the GPU that loads indirectly accessed 
+elements into GPU shared memory. Then use a two-level ``hierarchical coloring'' 
+approach to avoid data races, but improve locality over traditional global 
+coloring. 
+
+\item We design a reordering algorithm based on graph partitioning that 
+increases data reuse within a thread block, also further increasing shared 
+memory utilization. 
+
+\item Finally, we apply the above techniques and optimizations to a number of 
+representative unstructured-mesh applications to investigate performance on 
+modern GPUs, contrasting performance improvements over the state-of-the-art. 
+\end{enumerate}
+
+\noindent We demonstrate how the above locality-exploiting algorithms provide 
+performance improvements of upto 75\% compared to the state-of-the-art on the 
+latest NVIDIA Pascal and Volta GPUs. The algorithms are implemented as an 
+open-source software library~\cite{opt-library} and we illustrate 
+its use for improving performance of existing or new unstructured-mesh 
+applications.
+
+The rest of the paper is organized as follows: the remainder of Section
+\ref{introduction} introduces the basic concepts of unstructured meshes, 
+numerical methods based on them and a discussion on related works, Section 
+\ref{parallelisation-on-gpu} describes our optimized algorithms and the 
+motivation leading to there design. Section \ref{performance} presents the 
+performance analysis of the algorithms with experimental results. Finally, in 
+Section \ref{conclusion}, we present conclusions from this research. 
+\ref{library-implementation} contains a brief description of the structure of 
+the open source library.
+
+
+\subsection{Background}\label{sec:background}
+\input{background}
+
+\subsection{Related Work}\label{sec:related-works}
+\input{relatedwork}
+
+
+
+% This algorithmic pattern is the focus of our work: operations on 
+% sets that read and most importantly \emph{increment} data indirectly on other 
+% sets. These operations are common in numerical PDE methods, such as Finite 
+% Volumes and Finite Elements.
+
+
+
+
+
+
+% Significant   computational   resources   are   required   for the   simulation  
+%  of   these   highly   detailed   (usually   three-dimensional)  meshes.  The  
+% solution  involves  iterating  overmillions  of  elements  (such  as  mesh  
+% edges  and/or  nodes)to  reach  the  desired  accuracy  or  resolution.  
+% Furthermore,unlike  structured  meshes,  which  utilize  a  regular  
+% stencil,unstructured mesh based solutions use the explicit connec-tivity between 
+% elements during computation. This leads tovery irregular patterns of data access 
+% over the mesh, usuallyin  the  form  of  indirect  array  accesses.  These  data 
+%  accesspatterns are particularly difficult to parallelize due to 
+% datadependencies resulting in race conditions
+
+% Lean algorithms ?
+
+
+% To satisfy the computational needs of scientific algorithms, it is increasingly
+% necessary to parallelise their solution on modern multi-core CPUs, and GPUs. In
+% the past ten years since the first release of the CUDA language extension for
+% C/C++, GPUs became widely used for high performance and scientific
+% computations. CUDA provides a low level abstraction commonly referred to as
+% Single Instruction Multiple Threads (SIMT), which gives us fine grained control
+% over GPU architectures. \\
+
+% A significant class of scientific applications operate on unstructured meshes,
+% which are commonly represented as sets and explicit connections between them. 
+% \textbf{[Application from what domains?]} Computations generally iterate over 
+% elements of a set (e.g. faces), performing the same computations, on different 
+% data; they can access data on the set which they operate on (e.g. fluxes defined 
+% on the faces), or, using indirections, data
+% defined on other sets (such as coordinate data on connected vertices). In the 
+% latter case multiple threads may try to modify the same data, leading to race 
+% conditions. This algorithmic pattern is the focus of our work: operations on 
+% sets that read and most importantly \emph{increment} data indirectly on other 
+% sets. These operations are common in numerical PDE methods, such as Finite 
+% Volumes and Finite Elements. 
+\begin{comment}
+
+
+
+In most finite volume algorithms, and low order finite element algorithms the 
+ratio of computations to number of bytes is relatively low - at least compared 
+to the ideal balance on modern GPUs. Therefore the proper usage of the memory 
+system for such simulations is crucial to get good performance. High order 
+finite elements usually have much higher computational requirements, thus memory 
+bandwidth is less of a concern. 
+The throughput of memory accesses is the main bottleneck for a large class of 
+applications, thus our goal is to lower the impact of the memory transactions. 
+Since in most applications of interest, there isn't enough computations to hide 
+the cost of memory movement, we can either increase the number of memory 
+transactions in flight (to more efficiently utilise bandwidth), or decrease the 
+number of memory transactions. To achieve the latter goal, a common technique 
+is the use of shared memory within CUDA thread blocks as an explicitly managed 
+cache, because it has much higher bandwidth and lower latency than global 
+memory. The challenge then is to maximise data re-use within shared memory, and 
+optimise access patterns to both shared and global memory. 
+
+
+Most codes take one of three approaches \cite{LULESH:spec,miniaero}: they use a 
+straightforward parallelisation relying on (1) either colouring or (2) large 
+temporary datasets to avoid two threads that run simultaneously accessing the 
+same data, or (3) they use atomics to handle race conditions. The first two end 
+up with poor data locality for most of the cases: one cannot have good reuse in 
+reading data, but no conflicts (and no reuse) in writing it. Atomics are much 
+more expensive operations than regular memory transactions, therefore in most 
+cases lead to low throughput. The advantage of these approaches is that the 
+parallelisation is simple, which means that they have lower overhead at the 
+beginning to plan the execution of the kernel. However, if we spend more time 
+for planning the execution strategy for the kernel, for example by altering the 
+order in which the elements are processed we can significantly improve data 
+locality. Better memory locality means that we can use cache lines more 
+efficiently (with one read transaction we can read multiple pieces of data
+that we can use for the simulation) so that we end up with fewer memory 
 transactions in total, which means higher overall throughput.\\
 Reordering and partitioning algorithms are already used for maximising data
 reuse in CPUs and minimising communication in distributed memory systems. In
 our work we use them to improve the data locality on GPUs, specifically within
-CUDA thread blocks, to get better performance. We make the following
-contributions:
+CUDA thread blocks, to get better performance. 
+
+We make the following contributions:
 \begin{enumerate}
-  \item
-    We adopt a caching mechanism on the GPU that loads indirectly accessed
-    elements into shared memory. We use hierarchical colouring to avoid data
-    races.
-  \item
-    We design a reordering algorithm based on graph partitioning that increases data
-    reuse within a thread block, also increasing shared memory utilisation.
-  \item
-    We implement a library that parallelises applications on unstructured meshes
-    and is capable of reordering the threads to increase efficiency.
-  \item
-    We analyse the performance of various parallelisations and data layout
-    approaches on several representative applications and GPUs.
+\item We adopt a caching mechanism on the GPU that loads indirectly accessed 
+elements into shared memory. We use hierarchical colouring to avoid data races.
+
+\item We design a reordering algorithm based on graph partitioning that 
+increases data reuse within a thread block, also increasing shared memory 
+utilisation.
+
+\item We implement a library that parallelises applications on unstructured 
+meshes and is capable of reordering the threads to increase efficiency.
+  
+\item We analyse the performance of various parallelisations and data 
+layout approaches on several representative applications and GPUs.
 \end{enumerate}
+
 The rest of the paper is structured as follows: the rest of Section
 \ref{introduction} introduces the basic concepts of unstructured meshes and
 also discusses some related works, Section \ref{parallelisation-on-gpu}
@@ -70,67 +204,4 @@ Finally, in Section \ref{conclusion}, we draw some conclusions from the
 measurements. \ref{library-implementation} contains a brief
 description of the structure of our library.
 
-\subsection{Background}\label{sec:background}
-\input{background}
-
-\subsection{Related work}\label{related-works}
-
-Algorithms defined on unstructured meshes have been around for a long time -
-discretisations such as finite volumes or finite elements often rely on these
-meshes to deliver high-quality results. Indeed there is a large number of papers
-detailing such algorithms, and a large number of commercial, government, and
-academic research codes; to name a few OpenFOAM \cite{OpenFoamUserGuide},
-Rolls-Royce Hydra \cite{moinier2002edge}, FUN3D \cite{biedron2017fun3d}. All of
-these codes use unstructured meshes in some shape or form, and since they are
-often used for large experiments, the efficiency of their implementation is  an
-important concern. The problem of effectively parallelising applications using
-unstructured meshes is far from trivial and a number of solutions can be found
-in the literature.
-
-There are a large number of papers discussing the efficient implementation and
-parallelisation in classical CPU architectures
-\cite{mavriplis2002parallel,jin1999openmp}, FPGAs
-\cite{nagy2014accelerating,akamine2012reconfigurable}, and of course GPUs,
-which is the focus of our work.
-
-There are libraries and domain specific languages that target unstructured mesh
-computations on GPUs, such as Liszt \cite{devito2011liszt}, OP2
-\cite{giles2012op2}, or more specialised ones such as the OCCA\cite{libocca}
-open source library by Remacle et al. \cite{remacle2016gpu}, which looks at
-efficiently solving elliptic problems on unstructured hexahedral meshes. Some
-of these libraries do use shared memory for improving data locality, however
-advanced techniques, such as reordering and partitioning studied in this work
-are not evaluated. 
-
-Work done by Castro et al. \cite{shallow_water} on implementing
-path-conservative Roe type high-order finite volume schemes to simulate shallow
-flows uses auxiliary accumulators to avoid race conflicts while
-incrementing. Wu et al. \cite{wu2013complexity} introduce caching using the
-shared memory with partitioning (clustering), but they do not use colouring,
-instead, they use a duplication method similar to that of Lulesh and miniAero,
-as described below. Fu et al. \cite{fu2014architecting} also create contiguous
-patches (blocks) in the mesh to be loaded into shared memory, although they
-partition the nodes (the to-set) not the elements (the from-set of the
-mapping), further, they do not load all data into shared memory, only what is
-inside the patch. Writing the result back to shared memory is done by a binary
-search for the column index and atomic adds, which is inefficient on the GPU. 
-
-Mudalige et al. \cite{op2} work on the OP2 library, which is a basis of the
-present work. In the CUDA implementation, they use shared memory for caching
-with hierarchical colouring, but they do not reorder the threads, nor the data,
-to increase data reuse.
-
-Parallel to these works the US Department of Energy labs have released a set of
-proxy applications that represent large internal production codes, showing some
-of the computational and algorithmic challenges that they face. In the Lulesh
-\cite{LULESH2:changes} and the miniAero \cite{miniaero} applications, two
-methods are proposed to address race conflicts: the first is to allocate large
-temporary arrays where the intermediate results (the increments) are placed,
-avoiding any race conditions, and to use a separate kernel to gather the
-results; the second is to use atomics. Both lead to increased warp divergence
-and high data access latencies; and the use of the temporary array also leads to much
-more data being allocated and moved.
-
-In our work, instead of porting any specific computation, we present a general
-approach to accelerate unstructured mesh applications, and in particular the
-indirect increment algorithmic pattern, on GPUs.
+\end{comment}

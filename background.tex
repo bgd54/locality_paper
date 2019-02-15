@@ -1,42 +1,37 @@
 \subsubsection{Unstructured meshes}\label{unstructured-meshes}
-% In the scientific and high performance communities concurrent operations on
-% different meshes are commonly used; meshes can be used as discretisations to
-% numerically solve partial differential equations (PDEs). Usually these
-% simulations require millions of elements to get correct results. Structurally,
-% we can differentiate between structured and unstructured meshes.\\
-% Structured meshes have implicit connectivity between grid points: one can access neighbouring elements simply using indexing arithmetic without any further information.
-% Structured applications consist of loops over blocks which access datasets
-% defined on blocks and the access patterns required for an element is described
-% by stencils. A part of a block and a stencil describing access shown in Figure
-% \ref{fig:structured}. Most operations on structured grids can be easily
-% parallelised even on GPUs since all nodes can be processed simultaneously.
 
-% \begin{figure}
-% \centering
-% \includegraphics[width=4cm]{fig/svg/structured.eps}
-% \caption{Structured mesh and stencil describing access pattern}
-% \label{fig:structured}
-% \end{figure}
+\noindent Unstructured meshes can be abstractly viewed as a collection of sets 
+(e.g. nodes, edges, cells, etc.), data defined on these sets (e.g. fluxes, 
+coordinates, velocities), and explicit connectivity information between 
+sets. The connectivity information, declared as mapping tables are required for 
+determining the neighbors of a set element. If we represent sets as consecutive 
+indices from zero to the size of the set, then the mapping between two 
+sets is represented as an array which stores the index of set elements in the 
+second set of the mapping (referred to as the to-set) for every set element of 
+the first set (known as the from-set). For example consider the mesh illustrated 
+in Figure~\ref{fig:unstructured}. Figure~\ref{fig:mapping} details how part of 
+the mappings from edges to cells are defined for this mesh. Given such a 
+mapping, we can access the index of those elements which are connected to the 
+current element of the from-set from other sets (the to-sets of the mappings). 
 
-In our work, we take a simple abstraction for describing unstructured meshes and computations on them. Unstructured meshes are defined by sets (e.g. nodes, edges, cells, etc.), data defined on the sets, and explicit connectivity information between sets (mapping tables). For determining the neighbours of a set element external information is needed - we need to access mapping tables. We represent sets as consecutive indexes from zero to the size of the set. The mapping between two sets is represented as a mapping table, an array which stores the index of set elements in the second set of the
-mapping (referred as to-set) for every set element of the first set (from-set).
-For the example in Figure \ref{fig:unstructured} a part of the mapping from
-edges to cells is shown in Figure \ref{fig:mapping}. In this way we can access
-the index of those elements which are connected to the current element of the
-from-set from other sets (the to-sets of the mappings).
+The computations on the mesh are declared as a loop over the elements of a set, 
+executing some block of computation per element (i.e. an elemental kernel), 
+while accessing data directly on the iteration set or indirectly through a 
+mapping.  If a loop over a set only write to data defined on that set during the 
+elemental kernel, then each iteration of the loop could run in parallel. 
+However, for kernels which indirectly increment data, there may be multiple 
+from-set iterations that update the same to-set element. Such indirect-loops are 
+common in finite volume and finite element applications over 
+unstructured-meshes: e.g. when updating state variables in cells using fluxes 
+across faces, or when doing matrix assembly. The parallelization of indirect 
+loops are non-trivial as the exact elements leading to data races cannot be 
+determined from compile time information, given they are driven by the 
+structure of the mesh in general and the mapping tables in particular, which are 
+read in during run-time. 
 
-The computations on the mesh can commonly be given as a loop over the elements of a set, executing the same operations for every element, while accessing data directly on the iteration set or indirectly through a mapping. An example for a mesh and a mapping from
-edges to cells are shown in Figure \ref{fig:unstructured}.
+% The sole focus of the research is this paper is this indirect-loop data access 
+% pattern. 
 
-
-For our purposes, we classify computations into two categories. For kernels that
-only access data directly or only read data indirectly but write the data on
-the iteration set, the whole iteration space could run in parallel. However,
-for kernels which indirectly increment data, we need to ensure that there are
-no race conditions during the execution. The sole focus of our research is this second computational pattern. It is a pattern very common in finite volume and finite element applications: e.g. when updating state variables in cells using fluxes across faces, or when doing matrix assembly.
-
-The parallelisation of such unstructured mesh operations is highly non-trivial: the exact race conditions cannot be determined from compile
-time information, as they are driven by the mapping table.
 
 \begin{figure}
 \centering
@@ -55,16 +50,41 @@ time information, as they are driven by the mapping table.
 \label{fig:mapping}
 \end{figure}
 
+
+Some restrictions that apply is also worth noting here. The first is the use of 
+only a single level of mappings. This means that every piece of data that is 
+accessed during an iteration over a set is either defined directly on that set, 
+or is accessed through at most one level of indirection. However, his 
+restriction does not exclude applications using nested indirections, since a 
+mapping table can be created to contain the indexes that we access through 
+multiple mappings. The second restriction is that the result of the operations 
+on the sets are independent from the order of processing the elements of the 
+sets (to within machine precision). This restriction enables to exploit the 
+maximum opportunities for paralleization given that the accuracy of the 
+algorithms do not depend on the order of execution. Finally, only  mappings with 
+a fixed number of connections (or arity) are considered; such as edges to 
+vertices (where the degree is always 2), unlike for a vertices to vertices 
+mapping, where this will vary. The natural formalization of most FEM and FV 
+algorithm uses mappings with fixed number of connections.
+
+\begin{comment}
 In our case we used some restrictions for the applications, but our work is
 general enough that we are able to represent most applications in a way that
 doesn't violate our restrictions. The first is that there is no data access
 through multiple mappings. This means every piece of data that we access is either
 defined directly on the iteration set, or it is accessed
-through at most one level of indirection (a single mapping table entry). This restriction does not exclude applications
+through at most one level of indirection (a single mapping table entry). 
+This restriction does not exclude applications
 using nested indirections, since we can create a mapping that contains the
-indexes that we access through multiple mapping. The second restriction is that
+indexes that we access through multiple mapping. 
+
+The second restriction is that
 the result of the operations on the sets are independent from the order of
 processing the elements of the sets. This restriction is necessary to ensure
 that we can parallelise the operations, because there is no guarantee for
-execution order in the parallelised versions. Finally, we only consider mappings with a fixed number of connections; such as edges to vertices (where the degree is always 2), unlike for a vertices to vertices mapping, where this will vary. The natural formalisation of most FEM and FV algorithm uses mappings with fixed number of connections.
-
+execution order in the parallelised versions. Finally, we only consider mappings
+with a fixed number of connections; such as edges to vertices (where the degree 
+is always 2), unlike for a vertices to vertices mapping, where this will vary. 
+The natural formalisation of most FEM and FV algorithm uses mappings with fixed 
+number of connections.
+\end{comment}

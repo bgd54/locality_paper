@@ -1,0 +1,69 @@
+\noindent \textbf{[Need a more detailed related works section]}
+Algorithms defined on unstructured meshes forms an important 
+class of applications at many organizations. It is one of the seven dwarfs -- 
+common computation-communication patterns or motifs occurring in parallel 
+numerical applications -- identified by Colella in 2004~\cite{Colella2004}. 
+Discretizations such as finite volumes (FV) or finite elements (FE) often rely 
+on these meshes to deliver high-quality results. Indeed there is a large number 
+of papers detailing such algorithms, and a wide range of commercial, government, 
+and academic research codes (e.g. OpenFOAM~\cite{OpenFoamUserGuide}, Rolls-Royce 
+Hydra~\cite{moinier2002edge}, FUN3D~\cite{biedron2017fun3d}). All such 
+applications use unstructured meshes in some shape or form, and are often used 
+for large experiments, consisting of millions or even billions of mesh elements. 
+These codes often are critical to production and consume large portions of 
+high-performance computing systems time. As such, the efficient execution of 
+these applications on the parallel architectures of the day has been and 
+continues to be crucial to the organizations and stake-holders that have 
+invested in them for continued scientific delivery. Over the years, many works 
+have discussed and presented techniques for efficient implementations, initially 
+focusing on traditional CPU architectures~\cite{mavriplis2002parallel, 
+jin1999openmp}, then many-core processors such as GPUs~\cite{GPU-papers}, and 
+even architectures such as FPGAs~\cite{nagy2014accelerating, 
+akamine2012reconfigurable}. Many libraries have also been developed targeting 
+unstructured-mesh solvers, from classical libraries~\cite{trilinos, PETSc, 
+libocca, other-calssical-libs} to domain specific 
+languages~\cite{devito2011liszt, giles2012op2, pyfr2016}. 
+
+The adoption of GPUs for these kind of computations has already lead to 
+considerable speedups over traditional CPU architectures due to the 
+massive parallelism available on GPUs~\cite{Reguly2015, ELSEN200810148, 
+cohen2009fast}. Other notable works have further looked at improving 
+performance. Remacle et al. \cite{remacle2016gpu}, explores efficiently solving 
+elliptic problems on unstructured hexahedral meshes on GPUs. They use shared 
+memory for improving data locality, but advanced techniques, such as reordering 
+and partitioning are not utilized. Work done by Castro et al. 
+\cite{shallow_water} on implementing path-conservative Roe type high-order 
+finite volume schemes to simulate shallow flows uses auxiliary accumulators to 
+avoid data races while indirectly incrementing. Wu et al. 
+\cite{wu2013complexity} introduce caching using the shared memory with 
+partitioning (clustering), but do not use coloring. Instead they use a 
+duplication method similar to that of Lulesh and miniAero, as described below. 
+Fu et al. \cite{fu2014architecting} also create contiguous patches (blocks) in 
+the mesh to be loaded into shared memory, although they partition the nodes (the 
+to-set) but not the elements (the from-set of the mapping). Furthermore, they do 
+not load all data into shared memory, only what is inside the patch. Writing the 
+result back to shared memory is done by a binary search for the column index and 
+atomic adds, which leads to inefficiencies on the GPU. 
+
+Parallel to the above work, the US Department of Energy labs have released a 
+set of proxy applications that represent large internal production codes, 
+showing some of the computational and algorithmic challenges to be overcome on 
+novel and emerging architectures. Out of this suite of codes, 
+Lulesh~\cite{LULESH2:changes} and miniAero~\cite{miniaero} use two different 
+methods to address data races: (1) allocate large temporary arrays where the 
+intermediate results (i.e. the increments) are placed, avoiding any race 
+conditions, followed by the use of a separate kernel to gather the results and 
+(2) use atomics. Both lead to increased warp divergence and high data access 
+latencies on GPUs; and the use of the temporary array also leads to more 
+data allocations and movement, further constraining bandwidth. \textbf{[Are 
+these the only related work to note here ?]}
+
+The research detailed in the present work is based on previous work 
+in~\cite{op2}, where the OP2 library's GPU paralleization use shared memory on 
+GPUs using CUDA for caching with a two level ``hierarchical'' coloring. However, 
+we demonstrate superior execution strategies on GPUs with reordering of threads 
+and data, to increase data reuse and maximize data locality. Instead of directly 
+porting a specific application to use these techniques we present our methods 
+as a classical library that can be used in general to accelerate unstructured 
+mesh applications, and in particular the indirect increment algorithmic 
+pattern, on GPUs.

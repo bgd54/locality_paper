@@ -16,11 +16,12 @@ The application consists of five parallel loops: \textbf{save\_soln},
 In our work we focus on \textbf{res\_calc} since it has indirect increments and
 about the 70\% of the time is spent in this kernel on GPUs with global
 colouring.  This is the most complex loop with both indirect reads and writes; it
-iterates through edges, and computes the flux through them using data accessed indirectly on cells. It is called 2000
-times during the total execution of the application and performs about 100
-floating-point operations per mesh edge. In each iteration, it reads 5 and
-increments 4 double values from each of the 2 indirectly accessed cells, and
-reads 2 double values from each of the 2 indirectly accessed nodes.
+iterates through edges, and computes the flux through them using data accessed 
+indirectly on cells. It is called 2000 times during the total execution of the 
+application and performs about 100 floating-point operations per mesh edge. In 
+each iteration, it reads 5 and increments 4 double values from each of the 2 
+indirectly accessed cells, and reads 2 double values from each of the 2 
+indirectly accessed nodes.
 \\
  The tests are executed on a mesh with 2.8 million cells.
 
@@ -29,9 +30,11 @@ Volna is a shallow water simulation capable of handling the complete life-cycle
 of a tsunami (generation, propagation and run-up along the coast)
 \cite{dutykh2011volna}. The simulation algorithm works on unstructured
 triangular meshes and uses the finite volume method. Volna is written in C/C++
-and converted to use the OP2 library\cite{op2}. Volna spends most time in three kernels: \textbf{computeFluxes}, \textbf{SpaceDiscretization}
-and \textbf{NumericalFluxes}. We focus on the \textbf{SpaceDiscretization}
-kernel that iterates on edges accessing data indirectly on cells, 60\% of total execution time is spent in this kernel. In each iteration,
+and converted to use the OP2 library\cite{op2}. Volna spends most time in three 
+kernels: \textbf{computeFluxes}, \textbf{SpaceDiscretization} and 
+\textbf{NumericalFluxes}. We focus on the \textbf{SpaceDiscretization} kernel 
+that iterates on edges accessing data indirectly on cells, 60\% of total 
+execution time is spent in this kernel. In each iteration, 
 \textbf{SpaceDiscretization} reads 1 and increments 4 float values from each of
 the 2 indirectly accessed cells, and reads 7 float and 1 integer values directly.
 
@@ -47,9 +50,11 @@ large number of kernels with different access patterns such as indirect
 increments similar to increments inside \textbf{res\_calc} in Airfoil. For
 testing we used the SOD testcase with a 4 million element mesh. The top three
 kernels with the highest runtimes are \textbf{getq\_christiensen1},
-\textbf{getacc\_scatter}, \textbf{gather}. Among these (\textbf{getacc\_scatter}) has indirect increments, iterating on cells and incrementing data indirectly on vertices. This kernel reads 17 double values directly, and
-increments 4 double values on each of the 4 indirectly accessed nodes in each
-iteration.
+\textbf{getacc\_scatter}, \textbf{gather}. Among these 
+(\textbf{getacc\_scatter}) has indirect increments, iterating on cells and 
+incrementing data indirectly on vertices. This kernel reads 17 double values 
+directly, and increments 4 double values on each of the 4 indirectly accessed 
+nodes in each iteration.
 
 \subsubsection{Lulesh}\label{sec:lulesh-summary}
 
@@ -109,6 +114,6 @@ The original code (depending on a compile time parameter) either uses the
 auxiliary \textbf{apply\_cell\_flux} kernel that does the actual incrementing by
 gathering the intermediate results from a large temporary array, or uses atomics
 to do it within the kernel. Both the atomics and the work of the auxiliary
-kernel was substituted in our code by colouring.
+kernel was substituted in our code by coloring.
 
 % vim:set et sw=2 ts=2 tw=80:
