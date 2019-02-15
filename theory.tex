@@ -62,14 +62,14 @@ up, which is roughly the same as the number of elements themselves.
 \subsubsection{Array-of-Structures (AoS) vs Structure-of-Arrays (SoA)} 
 \label{aos-to-soa}
 
-Due to the lockstep execution, consecutive threads in a warp read the memory at 
-the same time. Therefore, the layout of the data in the memory is an important 
-factor for performance. There are two commonly used layouts 
-are~\cite{sharma2015data}:(1) Array-of-Structures (AoS) layout, where the data 
-associated with one element is in consecutive places in the array (and thus in 
-memory) and (2) Structure-of-Arrays (SoA) where the components of elements are 
-stored consecutively e.g. the first data component of the elements are in the 
-beginning of the array followed by the second, etc.
+Due to the lockstep execution, consecutive threads in a warp read the memory at
+the same time. Therefore, the layout of the data in the memory is an important
+factor for performance. There are two commonly used
+layouts~\cite{sharma2015data}: (1) Array-of-Structures (AoS) layout, where the
+data associated with one element is in consecutive places in the array (and thus
+in memory) and (2) Structure-of-Arrays (SoA) where the components of elements
+are stored consecutively e.g. the first data component of the elements are in
+the beginning of the array followed by the second, etc.
 
 Although in most cases the SoA gives better performance on GPUs and better
 vectorization on CPUs, the AoS layout is still commonly used on CPU
@@ -116,7 +116,7 @@ The use of shared memory, of course leads to one additional complication.
 Writing back the updated patches of shared-memory to GPU global memory may lead 
 to data races. This leads to the use of a \emph{two-layered coloring} or 
 \emph{hierarchical coloring}~\cite{op2} scheme. The blocks as well as the 
-threads within a block is colored (Figure \ref{fig:unstructured_hier}. The 
+threads within a block is colored (Figure \ref{fig:unstructured_hier}). The 
 former is to avoid data races when thread blocks write the result back to 
 global memory and the latter is to avoid threads writing their results into 
 shared memory at the same time. 
@@ -267,7 +267,7 @@ addresses this limitation.
 \noindent To increase data reuse within a block is equivalent to decreasing 
 data shared \emph{between} the blocks, more specifically, to decrease the 
 number of times the same data is loaded in different blocks (see 
-Figure~\ref{fig:unstructured_part}. With the sharing approach, data needs to be 
+Figure~\ref{fig:unstructured_part}). With the sharing approach, data needs to be 
 loaded only once per block. So the task is to partition the elements into 
 blocks of approximately the same size in such a way that when these blocks are 
 assigned to CUDA thread blocks, the common data used (loaded into shared 
