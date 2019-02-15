@@ -35,8 +35,8 @@ loop when the program is running on the GPU, and the result will be copied back
 to the host after. The pointers supplied to the user kernel also point to the
 location in the appropriate address space.
 
-The directly accessed data is always in SoA form, while the layout of the
-indirectly accessed data is a user supplied compile time parameter. The layout
+Data accessed only directly is always in SoA form, while the layout of the
+data indirectly accessed is a user supplied compile time parameter. The layout
 of the shared memory is determined by the user; it is SoA in the kernels in our
 measurements. The layout of the mappings is AoS for all the parallelisation
 methods except hierarchical colouring.
@@ -48,28 +48,23 @@ colouring has some additional synchronisation steps, as described by Algorithm
 
 \subsection{Execution planning}
 
-To avoid data races in the parallel loops, we colour the elements to avoid data
-races. Two kinds of colouring algorithms are used: global colouring is used for
-the OpenMP and the first CUDA parallelisation, while hierarchical or two-layer
-colouring is used for the shared memory approach.
+We use colouring to avoid data races. Two kinds of colouring algorithms are
+used: global colouring is used for the OpenMP and the first CUDA
+parallelisation, while hierarchical or two-layer colouring is used for the
+shared memory approach.
 
 The global colouring is a direct generalisation of the greedy graph colouring
 algorithm: for all elements of the from-set, its colour will be one of those
-that are used but none of its corresponding indirect points have. The function
-that chooses from the possible colours is a parameter; in the OpenMP and global
-colouring parallelisations, the colour with the least amount of from-set
-elements assigned to it (so far) is chosen.
+that are used but none of its corresponding indirect points have.
 
 The threads with different colours are started in different kernel launches. The
 mappings and the direct accessed data arrays are reordered according to their
-colour, so there is no need for another indirection (which would map from their
-index in the current colour to the actual from-set element that it should be
-working on).
+colour, so there is no need for another indirection.
 
 If partitioning is used in the preprocessing step, the hierarchical colouring
 reorders the threads according to that and maps the threads to blocks. The block
 sizes are limited by a parameter (given by the user), and if the partitioning
-algorithm produced a block that is larger, it is divided into two.
+algorithm produced a block that is larger, it is divided into two CUDA blocks.
 
 The same greedy colouring algorithm described above is then used to colour the
 thread blocks. Within the blocks we use the heuristics of ordering the threads
@@ -81,7 +76,7 @@ divergence, as described in Section \ref{optimisations}.
 
 The mappings and the direct accessed data are transformed into SoA layout to
 increase spatial locality. Similarly to the global colouring, these are then
-reordered according so they can be directly indexed by the loop variable.
+reordered so they can be directly indexed by the loop variable.
 
 \subsubsection{Reordering}
 
