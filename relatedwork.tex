@@ -1,5 +1,5 @@
 \noindent \textbf{[Need a more detailed related works section]}
-Algorithms defined on unstructured meshes forms an important 
+Algorithms defined on unstructured meshes form an important 
 class of applications at many organizations. It is one of the seven dwarfs -- 
 common computation-communication patterns or motifs occurring in parallel 
 numerical applications -- identified by Colella in 2004~\cite{Colella2004}. 
@@ -10,7 +10,7 @@ and academic research codes (e.g. OpenFOAM~\cite{OpenFoamUserGuide}, Rolls-Royce
 Hydra~\cite{moinier2002edge}, FUN3D~\cite{biedron2017fun3d}). All such 
 applications use unstructured meshes in some shape or form, and are often used 
 for large experiments, consisting of millions or even billions of mesh elements. 
-These codes often are critical to production and consume large portions of 
+These codes are often critical to production and consume large portions of 
 high-performance computing systems time. As such, the efficient execution of 
 these applications on the parallel architectures of the day has been and 
 continues to be crucial to the organizations and stake-holders that have 
@@ -46,17 +46,14 @@ result back to shared memory is done by a binary search for the column index and
 atomic adds, which leads to inefficiencies on the GPU. 
 
 Parallel to the above work, the US Department of Energy labs have released a 
-set of proxy applications that represent large internal production codes, 
+set of proxy applications that represent large internal production codes,
 showing some of the computational and algorithmic challenges to be overcome on 
-novel and emerging architectures. Out of this suite of codes, 
-Lulesh~\cite{LULESH2:changes} and miniAero~\cite{miniaero} use two different 
-methods to address data races: (1) allocate large temporary arrays where the 
+novel and emerging architectures Lulesh \cite{LULESH2:changes}, miniAero \cite{miniaero}, BookLeaf\cite{bookleaf}, MiniFE \cite{minife}, PENNANT \cite{pennant}. Out of this suite of codes there are three key approaches to handling data races: (1) allocate large temporary arrays where the 
 intermediate results (i.e. the increments) are placed, avoiding any race 
-conditions, followed by the use of a separate kernel to gather the results and 
-(2) use atomics. Both lead to increased warp divergence and high data access 
+conditions, followed by the use of a separate kernel to gather the results, 
+(2) use atomics, (3) use coloring. These all lead to increased warp divergence and high data access 
 latencies on GPUs; and the use of the temporary array also leads to more 
-data allocations and movement, further constraining bandwidth. \textbf{[Are 
-these the only related work to note here ?]}
+data allocations and movement, further constraining bandwidth. 
 
 The research detailed in the present work is based on previous work 
 in~\cite{op2}, where the OP2 library's GPU paralleization use shared memory on 

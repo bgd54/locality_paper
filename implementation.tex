@@ -1,7 +1,63 @@
-When implementing the library, the goal was to minimize the need for the users
-to modify their computation algorithms.
+Deploying the locality exploiting algorithms developed in this research to 
+existing and new unstructured-mesh applications is the subject of this appendix. 
+The algorithms have been implemented as an open source library 
+at~\cite{lib-repo}. We first provide an overview of the re-engineering / 
+development process required to utilize the library followed by a step-by-step 
+guide to the workflow involved. 
+
+There are two primary concerns for deployment. First, given an existing 
+application, its current data layout may need to change to accommodate AoS, SoA 
+or reordering of mesh elements. \textbf{[What do you mean here?]}  This will 
+also include the need for any auxiliary datasets to be computed (e.g. exact 
+block sizes when using partitioning-based reordering). \textbf{[end-What do you 
+mean here?]} Data layout reorganization has a one-off cost, and needs to be 
+performed during initialization. Changing data-layouts between different 
+computational kernels is usually prohibitively expensive and therefore avoided. 
+Reordering will not affect direct kernels, but it will affect indirect kernels. 
+AoS/SoA transformations affect all kernels. The impact of these transformations 
+need to be considered as a whole on the applications. 
+
+Secondly, the CUDA kernels that perform the computations need to be changed to 
+load, process and store data as was described in 
+Section~\ref{shared-memory-approach}. This will essentially involve directly 
+modifying the computational kernels of the unstructured-mesh application we are 
+deploying the optimizations to. The goal therefore is to minimize the amount 
+of changes required to be done on the original code.
+
+\textbf{Done up to here - Gihan}
+
+% involve surrounding the computational kernel with code provided by our library. 
+
+% \subsection{Integration into codes}
+
+% There are two key components to deploying these transformations and 
+% optimizations. First, the existing data layouts may need to be changed to
+% accommodate AoS, SoA or reordering optimizations, and any auxiliary datasets
+% need to be computed (e.g. exact block sizes when using partitioning-based
+% reordering). Second, the CUDA kernels that perform the computations need to be
+% changed to load, process and store data. The latter was described in Section
+% \ref{shared-memory-approach} -- the computational kernel needs to be 
+% surrounded by code provided by our library. Data reorganization and execution 
+% planning has a one-off cost, and needs to be performed during 
+% initialization---our library
+% also provides these as functions. It can of course affect other parts of the
+% code as well---as discussed above, reordering will not affect direct kernels,
+% but it will affect indirect kernels, and AoS/SoA transformations affect all
+% kernels. The impact of these transformations need to be considered as a whole 
+% on the applications, considering re-organization between different 
+% computational kernels is usually prohibitively expensive.
+
+
+% In our library, the AoS--SoA transformation is governed by a tunable
+% hyperparameter on a dataset-by-dataset basis. A hybrid SoA-AoS layout was not 
+% considered, due to the fact that the library is designed to be integrated 
+% into existing applicaitons, and the complexity
+
 
 \subsection{User kernels}
+
+
+
 
 The concept of a computation is in the form of a loop (or kernel) body. The loop
 body is written by the user from a skeleton code, the library only calls it. The

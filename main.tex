@@ -54,7 +54,7 @@
 
 \begin{abstract}
 
-\noindent Unstructured-mesh based numerical solvers such as finite volume and 
+\noindent Unstructured-mesh based numerical algorithms such as finite volume and 
 finite element algorithms forms an important class of applications for many 
 scientific and engineering domains. The key difficulty in achieving higher 
 performance from these applications is the indirect accesses that lead to 
@@ -90,7 +90,7 @@ finite volume \sep finite element \sep race condition \sep GPU
 
 \input{introduction}
 
-\section{Parallelisation on GPUs}\label{parallelisation-on-gpu}
+\section{Parallelization on GPUs}\label{parallelisation-on-gpu}
 
 \input{theory}
 
@@ -99,7 +99,6 @@ finite volume \sep finite element \sep race condition \sep GPU
 \input{performance}
 
 
-% HERE **********************
 \section{Conclusion}\label{conclusion}
 
 In this work we presented a number of novel locality-exploiting optimizations 
@@ -109,10 +108,10 @@ patterns. We build on well known techniques such as data-layouts (AoS and SoA),
 graph bandwidth minimizing algorithms, global and hierarchical coloring 
 approaches, exploring efficient execution strategies. A novel reordering 
 algorithm which uses k-way recursive partitioning, together with the use of GPU 
-share-memory implementing a hierarchical coloring method is designed to further 
-improve data reuse within CUDA thread blocks.
+share-memory implementing a hierarchical coloring method is designed 
+to significantly improve data reuse within CUDA thread blocks.
 
-The new optimizations are then applied to several well established unstructured-
+The new optimizations are then applied to several well established unstructured
 mesh applications, investigating their performance on NVIDIA’s latest P100
 and V100 GPUs. A range of performance metrics were benchmarked including 
 runtime, memory transactions, achieved bandwidth performance, GPU occupancy and 
@@ -138,7 +137,7 @@ applications, and when the achieved occupancy is low: the more thread colors a
 block has, the more synchronizations it will need, the latency of which can be 
 hard to hide when there are few eligible warps.
 
-The locality exploiting optimizations detailed in this paper enables to 
+The locality exploiting optimizations detailed in this paper enable us to 
 achieve performance gains of $20\%$ (Airfoil), $20\%$ (Volna), $75\%$ 
 (Bookleaf), $75\%$ (Lulesh) and $75\%$ (miniAero) over the original 
 implementations on the GPUs tested. These results significantly advance the 
@@ -158,7 +157,7 @@ applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
 or Rolls-Royce Hydra.
 
 The optimized algorithms are implemented as an open-source software 
-library~\cite{library}. Appendix~\ref{library-implementation} illustrate its 
+library~\cite{opt-library}. Appendix~\ref{library-implementation} illustrate its 
 use for improving performance of existing or new unstructured-mesh applications.
 
 

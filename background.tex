@@ -8,14 +8,14 @@ determining the neighbors of a set element. If we represent sets as consecutive
 indices from zero to the size of the set, then the mapping between two 
 sets is represented as an array which stores the index of set elements in the 
 second set of the mapping (referred to as the to-set) for every set element of 
-the first set (known as the from-set). For example consider the mesh illustrated 
+the first set (known as the from-set). For the majority of such applications, the number of to-set elements connected to each from-set element is fixed (e.g. all edges have two vertices). For example consider the mesh illustrated 
 in Figure~\ref{fig:unstructured}. Figure~\ref{fig:mapping} details how part of 
 the mappings from edges to cells are defined for this mesh. Given such a 
 mapping, we can access the index of those elements which are connected to the 
 current element of the from-set from other sets (the to-sets of the mappings). 
 
 The computations on the mesh are declared as a loop over the elements of a set, 
-executing some block of computation per element (i.e. an elemental kernel), 
+executing some block of computation on each set element (i.e. an elemental kernel), 
 while accessing data directly on the iteration set or indirectly through a 
 mapping.  If a loop over a set only write to data defined on that set during the 
 elemental kernel, then each iteration of the loop could run in parallel. 
@@ -25,7 +25,7 @@ common in finite volume and finite element applications over
 unstructured-meshes: e.g. when updating state variables in cells using fluxes 
 across faces, or when doing matrix assembly. The parallelization of indirect 
 loops are non-trivial as the exact elements leading to data races cannot be 
-determined from compile time information, given they are driven by the 
+determined from compile time-information, given they are driven by the 
 structure of the mesh in general and the mapping tables in particular, which are 
 read in during run-time. 
 
@@ -54,37 +54,15 @@ read in during run-time.
 Some restrictions that apply is also worth noting here. The first is the use of 
 only a single level of mappings. This means that every piece of data that is 
 accessed during an iteration over a set is either defined directly on that set, 
-or is accessed through at most one level of indirection. However, his 
+or is accessed through at most one level of indirection. However, this 
 restriction does not exclude applications using nested indirections, since a 
 mapping table can be created to contain the indexes that we access through 
 multiple mappings. The second restriction is that the result of the operations 
 on the sets are independent from the order of processing the elements of the 
-sets (to within machine precision). This restriction enables to exploit the 
+sets (within machine precision). This restriction enables to exploit the 
 maximum opportunities for parallelization given that the accuracy of the 
 algorithms do not depend on the order of execution. Finally, only  mappings with 
 a fixed number of connections (or arity) are considered; such as edges to 
 vertices (where the degree is always 2), unlike for a vertices to vertices 
 mapping, where this will vary. The natural formalization of most FEM and FV 
 algorithm uses mappings with fixed number of connections.
-
-\begin{comment}
-In our case we used some restrictions for the applications, but our work is
-general enough that we are able to represent most applications in a way that
-doesn't violate our restrictions. The first is that there is no data access
-through multiple mappings. This means every piece of data that we access is either
-defined directly on the iteration set, or it is accessed
-through at most one level of indirection (a single mapping table entry). 
-This restriction does not exclude applications
-using nested indirections, since we can create a mapping that contains the
-indexes that we access through multiple mapping. 
-
-The second restriction is that
-the result of the operations on the sets are independent from the order of
-processing the elements of the sets. This restriction is necessary to ensure
-that we can parallelise the operations, because there is no guarantee for
-execution order in the parallelised versions. Finally, we only consider mappings
-with a fixed number of connections; such as edges to vertices (where the degree 
-is always 2), unlike for a vertices to vertices mapping, where this will vary. 
-The natural formalisation of most FEM and FV algorithm uses mappings with fixed 
-number of connections.
-\end{comment}

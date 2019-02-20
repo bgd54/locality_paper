@@ -50,7 +50,7 @@ implementation.
 
 When comparing performance of different versions, we use the achieved bandwidth
 as the key performance metric. Emphasis on bandwidth is justified given that 
-all of the test applications, as we demonstrate are memory-bound. Achieved 
+all of the test applications, as we demonstrate, are memory-bound. Achieved 
 bandwidth is calculated by the formula: $$\frac{\sum_{d} w_dS_d}{T} \cdot I,$$ 
 where $d$ iterates over the datasets, $w_d$ is $2$ if the data is read and 
 written, $1$ otherwise, $S_d$ is the size of the dataset (in bytes), $T$ is the 
@@ -81,8 +81,8 @@ and explain why certain variants are better than others.
 
 \subsubsection{Airfoil}
 
-Airfoil, implemented using the OP2 DSL~\cite{op2} is the smallest, well 
-understood and thoroughly studied among the applications we explored. It is 
+Airfoil, implemented using the OP2 DSL~\cite{op2} is the smallest, best 
+understood and most thoroughly studied among the applications we explored. It is 
 representative of large industrial Finite Volume CFD applications and implements 
 a non-linear 2D inviscid airfoil code using an unstructured grid. A 
 finite-volume discretization is used to solve the 2D Euler equations with a 
@@ -100,7 +100,7 @@ Here we focus on \texttt{res\_calc}, as it has indirect increments and about
 GPUs when using a global coloring. The loop contains both indirect reads and 
 writes. It iterates through edges (i.e. the from-set), and computes the flux 
 through edges using data accessed indirectly on the two cells adjacent to each 
-edge. The \texttt{res\_calc} loop is called 2000 times during the total 
+edge. The \texttt{res\_calc} loop is called 2000 times during the  
 execution of the application and performs about 100 floating-point operations 
 per mesh edge. In each iteration, it reads 5 and increments 4 double values from 
 each of the 2 indirectly accessed cells, and reads 2 double values from each of 
@@ -108,7 +108,7 @@ the 2 indirectly accessed nodes.
 
 Table \ref{tab:airfoil_counters_glob} show the effect of various optimizations 
 on the Airfoil application's \texttt{res\_calc} kernel, during the execution of 
-on an unstructured mesh with 2.8 million cells.
+on an mesh with 2.8 million cells.
 
 
 \begin{table}[Htbp]
@@ -157,10 +157,10 @@ details the measured performance of the original code.}
 As discussed in Section~\ref{aos-to-soa}, with SoA threads in a warp access data 
 addresses that are near each other. The improvement can also be seen in 
 the number of global memory read transactions as it is roughly $87\%$ of that 
-with AoS layout. Adding the the GPS renumbering, improves performance 
+with AoS layout. Adding the GPS renumbering, improves performance 
 further by placing data points that are accessed in consecutive threads close 
 to each other. Now there is a $19\%$ reduction in global read transactions 
-compared to the base-line AoS. Given that the partition based reordering is 
+compared to the baseline AoS. Given that the partition based reordering is 
 primarily intended for the hierarchical coloring, it does not improve on the 
 renumbering optimizations. The reason being that partitioning groups threads 
 that access the same data together, while the global coloring puts them into 
@@ -190,13 +190,13 @@ speedup compared to the original OP2 version (its low-level metrics are detailed
 in the final column of Table~\ref{tab:airfoil_counters_glob}). In this case, the 
 original version also used the shared memory approach, so the performance gains 
 are caused by the reordering. In the original version $56\%$ of the total time 
-is spent in \texttt{res\_calc}, therefore the achieved $1.2\times$ speedup on 
-\texttt{res\_calc} causes about $1.1\times$ speedup on the whole application. 
+is spent in \texttt{res\_calc}, therefore the achieved $20\%$ speedup on 
+\texttt{res\_calc} causes about $10\%$ speedup on the whole application. 
 The useful bandwidth of the best performing version of \texttt{res\_calc} 
-reached $55\%$ of the peak stream bandwidth of the P100 GPU. Although the number 
-of block colors increased with reordering, we believe that this is due to the 
-problem size, where there are too few blocks of the of the same color to 
-saturate the GPU. 
+ reached $55\%$ of the peak stream bandwidth of the P100 GPU. %Although the number 
+% of block colors increased with reordering, we believe that this is due to the 
+% problem size, where there are too few blocks of the of the same color to 
+% saturate the GPU. 
 
 
 \begin{figure}[Htbp]
@@ -230,10 +230,10 @@ partitioning (part.)}
 
 Similar results were obtained on the newer Volta GPUs (V100) as illustrated in 
 Figure~\ref{fig:airfoil_bw-vs-bs_hier_large_volta}). The absolute value of the
-bandwidths are (understandably) higher. On the V100, we achieved $1.28\times$ 
+bandwidths are (understandably) higher. On the V100, we achieved $28\%$ 
 speedup in the kernel compared to the original code with $446$ GB/s bandwidth 
 ($60\%$ of the peak bandwidth). Since \texttt{res\_calc} takes around $54\%$ of 
-the total run time in the original code this speedup results in $1.14\times$ 
+the total run time in the original code this speedup results in $14\%$ 
 speedup on the whole application.
 
 
@@ -262,8 +262,7 @@ given their superior performance to global coloring. The reordering by
 partitioning again improves performance. It increases reuse from $1.5$ to 
 $2.8$ and decreases the number of global transactions by $18\%$ for reads and 
 $37\%$ for writes. The larger reduction in writes can be explained by the fact 
-that the calculation does not read the values of the indirect data from the 
-previous iteration, it only read the direct data.
+that the calculation only reads data defined on the iteration set directly.
 
 Again, recall that the AoS version uses adjacent threads to load adjacent 
 components of data points. Additionally, given the use of single precision 
@@ -274,16 +273,16 @@ in global memory transfers for reads and writes, respectively. This leads
 to performance improvements of $292\,\text{GB/s}$ versus $268\,\text{GB/s}$.
 
 Low register counts ($28$--$32$) and single-precision data types also 
-resulted in achieving a higher occupancy on the GPU compared to Airfoil. This , 
-we believe explains why performance appear to be independent of the block size 
+resulted in achieving a higher occupancy on the GPU compared to Airfoil. This, 
+we believe explains why performance appears to be independent of the block size 
 as shown in the Figure \ref{fig:volna_bw-vs-bs_hier}. 
 
 We also see that using partitioning does not increase the number of thread 
-colors, as we observed on Airfoil. The increase of colors are from $3$ to $4$. 
-As such the synchronization overhead is also smaller. The percentage of stalls 
-caused by synchronization increases from $12\%$ to just $15\%$. Of course, with 
-high occupancy, the latency caused by synchronization can be better hidden by 
-running warps from other blocks. 
+colors significantly, as we observed on Airfoil. The increase of colors are 
+from $3$ to $4$. As such the overall synchronization overhead is also smaller. 
+The percentage of stalls caused by synchronization increases from $12\%$ to just 
+$15\%$. Of course, with high occupancy, the latency caused by synchronization 
+can be better hidden by running warps from other blocks. 
 
 %shared memory usage:
 % 7.7KB, 4.3 for metis
@@ -297,13 +296,13 @@ running warps from other blocks.
   \label{fig:volna_bw-vs-bs_hier}
 \end{figure}
 
-As can be seen from Figure \ref{fig:volna_speedup}, the locality exploiting 
+As can be seen in Figure \ref{fig:volna_speedup}, the locality exploiting 
 optimizations makes the kernel $20\%$ faster than the original OP2 version. The 
 $20\%$ performance gain in \texttt{SpaceDiscretization} results in a $6\%$ 
 increase to the whole application. The useful bandwidth also increases and 
 reached $30\%$ of the peak stream bandwidth of the P100 GPU. On the V100, the 
 performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth). Which 
-means a $1.18\times$ speedup on the kernel and $1.05\times$ speedup on the whole 
+means a $18\%$ speedup on the kernel and $5\%$ speedup on the whole
 application compared to the original.
 
 %XXX: make this table look more like the airfoil one
@@ -370,7 +369,7 @@ Lagrangian-Eulerian method.  Bookleaf is written entirely in Fortran 90 and has
 been ported to use the OP2 API and library. Bookleaf has a large number of 
 kernels with different access patterns such as indirect increments similar to 
 increments inside \texttt{res\_calc} in Airfoil. For benchmarking we used the 
-SOD test case with a mesh of 4 million elements. The top three, most 
+SOD test case with a mesh of 4 million cells. The top three, most 
 time consuming kernels are \texttt{getq\_christiensen1}, 
 \texttt{getacc\_scatter}, and \texttt{gather}. Out of these kernels, 
 (\texttt{getacc\_scatter}) has indirect increments, iterating on cells and 
@@ -382,10 +381,10 @@ Runtime performance of BookLeaf and specifically the low-level performance of
 the \texttt{getacc\_scatter} kernel are detailed in Figures
 \ref{fig:bookleaf_bw-vs-bs_hier} and \ref{fig:bookleaf_speedup}. Again we see  
 benefits from partitioning. The register count and occupancy are also similar to 
-those with Airfoil ($64$ registers, achieving occupancy or around $40\%$), this 
+those with Airfoil ($64$ registers, achieving occupancy around $40\%$), this 
 now leads to the variations in performance for different block sizes. With 
 partitioning, the number of thread colors increases from $2$ to $5$, this
-leads to increased stalls from synchronization: from $9\%$ to $20\%$, while
+leads to increased stalls from synchronizations: from $9\%$ to $20\%$, while
 the reuse factor increases (from $2$ to $3.5$). This is comparable to 
 that of Airfoil, and explains the smaller increase in performance (only $9\%$, 
 compared to the $19\%$ increase in Airfoil). The higher data reuse leads to 
@@ -398,14 +397,14 @@ The best performance we achieved with \texttt{getacc\_scatter} results in about
 $2\%$ performance increase for the the whole application. The useful bandwidth
 also increased and reached $83\%$ of the peak stream bandwidth of the P100 GPU. 
 On the V100, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
-bandwidth which results in $1.03\times$ speedup on the whole application 
+bandwidth which results in $3\%$ speedup on the whole application 
 compared to the original.
 
 \begin{figure}[Htbp]
   \centering
   \includegraphics[width=10cm]{fig/bookleaf_bw-vs-bs_hier.eps}
   \caption{\texttt{getacc\_scatter} kernel bandwidth on a mesh with $4000000$
-  edges using hierarchical colouring. Note that the y-axis doesn't start at the
+  edges using hierarchical colouring. Note that the y-axis does not start at the
   origin.}
   \label{fig:bookleaf_bw-vs-bs_hier}
 \end{figure}
@@ -421,7 +420,7 @@ compared to the original.
 \end{figure}
 
 
-\subsubsection{Lulesh}\label{sec:lulesh-summary}
+\subsubsection{LULESH}\label{sec:lulesh-summary}
 
 \hyphenation{CalcFBHourglassForceForElems IntegrateStressForElems}
 
@@ -454,8 +453,8 @@ this code for our tests was to remove these parts from the kernel.
 The \texttt{IntegrateStressForElems} kernel uses a mapping with 8 neighbors for 
 the brick elements (compared to the 2--4 as in the case of the previous 
 application kernels). As a result, the number of colors is quite high: $8$, $16$ 
-and $24$ in the global coloring versions (for the different reordering), and 
-$4$, $50$ and $15$ in the hierarchical coloring versions. The number of thread 
+and $24$ in the global coloring versions (for the different reorderings), and 
+$4$, $5$ and $15$ in the hierarchical coloring versions. The number of thread 
 colors was also quite high: $4$ in the non-reordered ($4.5$ in the GPS) and 
 $11.6$ in the partitioned version. This is a much larger increase compared to 
 the previous applications (Table~\ref{tab:lulesh_counters_hier}). At the same 
@@ -463,17 +462,17 @@ time of course, data reuse is higher compared to 2D applications - between
 $2.6$ and $4.8$.
 
 The other aspect in which LULESH is differs is that it uses a high amount of
-registers ($96$), significantly decreases occupancy: with block size 320, the
-AoS version achieved $15\%$ and the SoA version achieved around $30\%$. Because 
-of these two reasons, the synchronization overhead ($39\%$ stalls were from 
-synchronization on the partitioned mesh) couldn't be hidden: there were no 
+registers ($96$), which significantly decreases occupancy: with block size 320, 
+the AoS version achieved $15\%$ and the SoA version achieved around $30\%$. 
+Because of these two reasons, the synchronization overhead ($39\%$ stalls were 
+from synchronization on the partitioned mesh) couldn't be hidden: there were no 
 warps from other blocks to be scheduled in place of the stalled ones because
-there was only one block running on each multiprocessor. The difference 
-in achieved occupancy also means that the SoA version with two blocks per
-multiprocessor gives better performance. Nevertheless, as shown on Figure 
+there was only one block running on each multiprocessor. The difference in 
+achieved occupancy also means that the SoA version with two blocks 
+per multiprocessor gives better performance. Nevertheless, as shown in Figure 
 \ref{fig:lulesh_speedup}, the hierarchical coloring algorithm performs 
 significantly better than the original, two-step implementation, and also uses 
-much less memory. Although the original require less synchronization, the 
+much less memory. Although the original requires less synchronization, the 
 resulting warp divergence also cannot be hidden if the occupancy is this low.
  
 \begin{figure}[Htbp]
@@ -486,15 +485,15 @@ resulting warp divergence also cannot be hidden if the occupancy is this low.
 \end{figure}
 
 In the original version $37\%$ of the total time is spent in 
-\texttt{IntagrateStressForElems}, therefore the achieved $1.75\times$ speedup on
-the kernel gives about $1.28\times$ speedup on the whole application. The
+\texttt{IntagrateStressForElems}, therefore the achieved $75\%$ speedup on
+the kernel gives about $28\%$ speedup on the whole application. The
 useful bandwidth in case of the best version of \texttt{IntegrateStressForElems}
 reached $20\%$ of the peak stream bandwidth on the P100 GPU. On the V100, 
-we achieved $1.84\times$ speedup for this kernel compared to the
+we achieved $84\%$ speedup for this kernel compared to the
 original with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth). In the
 original version $35\%$ of the total time is spent in 
 \texttt{IntegrateStressForElems}, therefore the achieved kernel speedup 
-results in about $1.29\times$ speedup on the whole application.
+results in about $29\%$ speedup on the whole application.
 
 \begin{figure}[Htbp]
   \centering
@@ -558,7 +557,7 @@ the original kernel.}
 
 \subsubsection{miniAero}\label{sec:mini-aero-summary}
 
-The final application we explore is, miniAero \cite{miniaero}, which is a 
+The final application we explore is miniAero \cite{miniaero}, which is a 
 mini-application from the Mantevo suite \cite{heroux2009improving}. MiniAero is 
 an explicit (4th order Runge-Kutta) unstructured finite volume code that solves 
 the compressible Navier-Stokes equations. Both inviscid and viscous terms are 
@@ -572,7 +571,7 @@ library~\cite{CarterEdwards20143202}.
 For miniAero we study the \texttt{compute\_face\_flux} kernel that computes the
 flux contributions of the faces and increments it with the appropriate cell flux
 values. The kernel iterates over the faces of the mesh, and accesses the cells
-indirectly. In each iteration, it reads 28 and increments, 5 double values from
+indirectly. In each iteration, it reads 28 and increments 5 double values from
 each of the 2 indirectly accessed cells, and reads 12 double values directly. 
 The original code, depending on a compile time parameter, either uses 
 the auxiliary \texttt{apply\_cell\_flux} kernel that does the actual 
@@ -586,7 +585,7 @@ the auxiliary kernel was substituted in our code by coloring.
 
 The \texttt{compute\_face\_flux} kernel is the most computationally intensive
 among the ones we tested: it uses $165$ registers in hierarchical coloring
-($166$ in SoA layout). Also, it achieve, with a block size of $384$ and 
+($166$ in SoA layout). Also, it achieves, with a block size of $384$ and 
 reordered by GPS, $15\%$ of peak double precision efficiency, compared to the 
 $6$--$7\%$ in Airfoil (Table \ref{tab:mini_aero_counters_hier}). It also uses 
 $8$ square root operations and several divides that can't efficiently fill the 
@@ -637,8 +636,8 @@ The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
 outperformed both (Figure \ref{fig:mini_aero_speedup_small-cache}). In the 
 original version $22\%$ of the total time is spent 
-in \texttt{compute\_face\_flux}, therefore the achieved $1.75\times$ kernel 
-speedup provides about $1.10\times$ speedup for the whole application. The 
+in \texttt{compute\_face\_flux}, therefore the achieved $75\%$ kernel 
+speedup provides about $10\%$ speedup for the whole application. The 
 useful bandwidth in case of the best version of \texttt{compute\_face\_flux} 
 ($168$ GB/s) reached $34\%$ of the peak stream bandwidth of the P100 GPU.
 
@@ -705,24 +704,24 @@ the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
-On Volta, we achieved $2.57\times$ speedup in the kernel compared to the
+On Volta, we achieved $157\%$ speedup in the kernel compared to the
 original code with $268$ GB/s bandwidth ($36\%$ of the peak bandwidth). In the
 original version $27\%$ of the total time is spent 
 in \texttt{compute\_face\_flux}, therefore the kernel speedup provides about
-$1.20\times$ speedup for the whole application.
+$20\%$ speedup for the whole application.
 
 
 
 
 \subsubsection{Analysis of structured meshes}
 
-Recalling that, the meshes of miniAero and LULESH are actually structured 
+Recalling that the meshes of miniAero and LULESH are actually structured 
 meshes, generated by the code itself allows us to use their structured 
 nature to create partitions with better shapes as opposed to partitions 
 produced by METIS. This in turn allows us to understand the trade-off between
-high data reuse and number of thread colors.  We create 1D, 2D and 3D
-partitions such that these will have an increasing amount of reuse and number 
-of colors. 
+high data reuse and number of thread colors.  We create 1D (straight line), 2D 
+(rectangles) and 3D (bricks) shape partitions such that these will have an 
+increasing amount of reuse, and with that, number  of colors. 
 
 While both kernels operate on 3D Cartesian (hex8) meshes, the LULESH kernel 
 \texttt{IntegrateStressForElems} uses a mapping from cells to their connected 
@@ -735,9 +734,9 @@ partitioning the same mesh using METIS. The size of the blocks is $128$. The
 results are from meshes with specifically tailored shapes so that the 
 handcrafted blocks can cover them without any gaps. 
 
-In \texttt{IntegrateStressForElems}, the achieved bandwidth of with the 
+In \texttt{IntegrateStressForElems}, the achieved bandwidth of the 
 original ordering is $134\,\text{GB/s}$ - it uses a row major order. This is 
-similar to what we use for a block shape that is $128$ cells long and only $1$ 
+similar to what we use for a line block shape that is $128$ cells long and only $1$ 
 cell thin in the other dimensions. The partitioned mesh (as detailed in Section 
 \ref{sec:lulesh-summary}) achieved $132\,\text{GB/s}$, and we achieved 
 $167\,\text{GB/s}$ bandwidth using our handcrafted blocks, for the same block 
@@ -751,11 +750,12 @@ using these handcrafted blocks can only be done on meshes that are actually
 structured, therefore this is not representative of realistic cases. However, 
 these results illustrate clearly that when the number of thread colors are the 
 same, increased reuse leads to better performance. Also, there is an optimal 
-number of thread colors for each application, and performance will suffer 
-above that. The challenge lies in finding a partitioning algorithm that can 
-either find the middle ground, or can be tuned along the amount of reuse it 
-aims to achieve. Such partitioning algorithms are not currently available, but 
-the evidence here clearly demonstrate their usefulness. 
+trade off between reuse and the number of thread colors for each application, 
+and performance will suffer above/below that. The challenge lies in finding a 
+partitioning algorithm that can either find the middle ground, or can be tuned 
+along the amount of reuse it aims to achieve. Such partitioning algorithms are 
+not currently available, but the evidence here clearly demonstrate their 
+usefulness. 
 
 
 \begin{figure}[Htbp]
