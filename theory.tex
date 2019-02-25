@@ -93,7 +93,7 @@ Considering the three data race avoiding approaches, we see that they all only
 make use of the GPU global memory. As such one technique to further improve 
 performance is by reducing memory accesses to the GPU global memory. To this 
 end, the OP2 library~\cite{op2} targets the use of the shared memory on the 
-GPUs. Shared memory, is only shared within thread blocks, but has much lower 
+GPUs. Shared memory is only shared within thread blocks, but has much lower 
 access latency and higher bandwidth than the global memory. The idea is to 
 collect the data required to perform the computations and load it into shared 
 memory. Then, during computation, the indirect accesses are to the shared
@@ -120,24 +120,26 @@ shared memory at the same time.
   \centering
   \includegraphics{fig/svg/unstructured_hier.eps}
   \caption{Schematic figure of the hierarchical coloring approach. The thread
-  blocks are circled with dashed lines. The arrows represent the individual 
-  pieces of data loaded.}
+  blocks are circled with dashed lines. The arrows represent the individual data
+  points loaded.}
   \label{fig:unstructured_hier}
 \end{figure}
 
-Algorithm~\ref{code:shared} details the steps carried out by a CUDA kernel for 
-executing within this two-level coloring scheme. All indirect data accessed 
-by the block (which is identified during a preprocessing phase) is fetched from 
-global to shared memory to shared memory. Here, the operation consists of two 
-nested loops: (1) an iteration over the data points, and within that, (2) an 
-iteration over the data corresponding to the data point. For the SoA layout, 
-only the outer loop needs to be parallelized, as this will cause parallel 
-read operations to access memory addresses next to each other. For the same 
-reason, if the AoS layout is used, both parallel loops need to be parallelized
-(i.e. collapsed into one). The data layout in shared memory is best be set to SoA: 
-our measurements showed a consistent degradation in performance when switching 
-to AoS layout, due to the spatial locality described in Section 
-\ref{aos-to-soa}: it leads to fewer bank conflicts.
+Algorithm~\ref{code:shared} details the steps carried out by a CUDA kernel for
+executing within this two-level coloring scheme. All indirect data accessed by
+the block (which is identified during a preprocessing phase) is fetched from
+global to shared memory to shared memory. As noted in Section~\ref{aos-to-soa},
+data is usually composed of data points with multiple components (for example,
+x-y-z coordinates), so this operation consists of two nested loops: (1) an
+iteration over the data points, and within that, (2) an iteration over the data
+corresponding to the data point. For the SoA layout, only the outer loop needs
+to be parallelized, as this will cause parallel read operations to access memory
+addresses next to each other. For the same reason, if the AoS layout is used,
+both parallel loops need to be parallelized (i.e.  collapsed into one). The data
+layout in shared memory is best be set to SoA: our measurements showed a
+consistent degradation in performance when switching to AoS layout, due to the
+spatial locality described in Section \ref{aos-to-soa}: it leads to fewer bank
+conflicts.
 
 After the data is loaded into shared memory, each thread executes the main body 
 of the kernel, and outputs are placed into registers.  Next, the threads update 
@@ -146,24 +148,28 @@ written back to global memory.
 
 \begin{algorithm}
   \begin{algorithmic}
-    \State tid = blockIdx.x * blockDim.x + threadIdx.x
-    \State bid = blockIdx.x
-    \ForAll {d $\in$ indirect\_data}
-      \State shared[shared\_ind(d)] = global\_indirect[d]
+    \State \lstinline!tid = blockIdx.x * blockDim.x + threadIdx.x!
+    \State \lstinline!bid = blockIdx.x!
+    \ForAll {\lstinline!data_point! $\in$ \lstinline!indirect_data!}
+      \ForAll {\lstinline!d! $\in$ \lstinline!data_point!}
+        \State \lstinline!shared[shared_ind(d)] = global_indirect[d]!
+      \EndFor
     \EndFor
-    \State \_\_syncthreads()
-    \State result = computation(shared[mapping[tid]], global\_direct[tid])
-    \State \_\_syncthreads()
-    \State fill shared with zeros
-    \State \_\_syncthreads()
-    \For {c = 1 $\ldots$ num\_thread\_colours}
-      \If{c == thread\_colours[tid]}
+    \State \lstinline!__syncthreads()!
+    \State \lstinline!result = computation(shared[mapping[tid]], global_direct[tid])!
+    \State \lstinline!__syncthreads()!
+    \State fill shared memory with zeros
+    \State \lstinline!__syncthreads()!
+    \For {\lstinline!c = 1! $\ldots$ \lstinline!num_thread_colours!}
+      \If{\lstinline!c == thread_colours[tid]!}
         \State increment shared with result
       \EndIf
-      \State \_\_syncthreads()
+      \State \lstinline!__syncthreads()!
     \EndFor
-    \ForAll{d $\in$ indirect\_data}
-      \State increment global\_indirect\_out with shared
+    \ForAll {\lstinline!data_point! $\in$ \lstinline!indirect_data!}
+      \ForAll {\lstinline!d! $\in$ \lstinline!data_point!}
+        \State increment \lstinline!global_indirect_out! with shared
+      \EndFor
     \EndFor
   \end{algorithmic}
   \caption{Algorithm to use the shared memory to preload indirect data accessed
