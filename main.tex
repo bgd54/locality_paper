@@ -160,67 +160,6 @@ The optimized algorithms are implemented as an open-source software
 library~\cite{opt-library}. Appendix~\ref{library-implementation} illustrate its 
 use for improving performance of existing or new unstructured-mesh applications.
 
-
-% We investigated methods of accelerating parallel scientific computations on
-% unstructured meshes, specifically looking at improving the performance of
-% kernels with indirect increment access patterns.
-
-% We considered a number of well-known techniques, such as AoS and SoA, graph 
-% bandwidth minimizing algorithms, global and hierarchical coloring approaches. 
-% We designed a reordering algorithm which uses k-way recursive partitioning to 
-% improve data reuse within CUDA thread blocks.
-
-% We implemented a library that can automatically (without major modifications
-% from the part of the user) parallelize serial user code, avoiding data races
-% using global and hierarchical coloring. It uses optimizations specifically
-% targeting GPUs, such as caching in shared memory, reordering by colors to 
-% reduce warp divergence and using vector types to more efficiently utilize
-% available global memory bandwidth.
-
-% Using this library, we analyzed the performance of our algorithms on a number of
-% representative unstructured mesh applications varying a number of parameters,
-% such as the different thread block sizes and data layouts (Array of Structures
-% versus Structure of Arrays).
-
-% When comparing the performance of global and hierarchical coloring (shared
-% memory caching) approach, the shared memory approach consistently performed
-% better, since it could exploit the temporal locality in indirectly accessed data
-% by avoiding data races in shared memory with synchronization within thread
-% blocks rather than different kernel launches.
-
-% We also analyzed the performance of reordering based on GPS renumbering and
-% partitioning. The former improves global coloring with increasing spatial
-% reuse, while the latter can significantly improve the shared memory approach by
-% increasing data reuse within thread blocks, which results in smaller shared
-% memory and fewer global memory transactions.
-
-% We have shown that there is a trade-off between high data reuse and large
-% numbers of thread colors in hierarchical coloring that is especially
-% pronounced in 3D applications, and when the achieved occupancy is low: the more 
-% thread colors a block has, the more synchronizations it will need, the latency 
-% of which can be hard to hide when there are few eligible warps.
-
-% Using our methods, we were able to achieve performance gains of $10\%$
-% (Airfoil), $20\%$ (Volna), $75\%$ (Bookleaf), $75\%$ (Lulesh) and $25\%$
-% (miniAero) over the original implementations. These results significantly
-% advance the state of the art, demonstrating that the algorithmic patterns used
-% in most current implementations (particularly in case of US DoE codes
-% represented by LULESH and MiniAero) could be significantly improved upon by the
-% adoption of two-level coloring schemes and partitioning for increased data
-% reuse.
-% 
-% When carrying out this work, it had become clear that partitioning algorithms in
-% traditional libraries such as Metis and Scotch were not particularly well suited
-% for producing such small partition sizes. As potential future work, we wish to
-% explore algorithms that are better optimized for this purpose. The performance
-% of these partitioning algorithms was also low - parallelizing this could be
-% another interesting challenge. Finally, we are planning to integrate these
-% algorithms into the OP2 library, so they can be automatically deployed on
-% applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
-% or Rolls-Royce Hydra.
-
-% vim:set et sw=2 ts=2 tw=80:
-
 \section*{Acknowledgements}
 \noindent Istv\'an Reguly was supported by the J\'anos Bolyai Research 
 Scholarship of the Hungarian Academy of Sciences. Project no. PD 124905 has been 

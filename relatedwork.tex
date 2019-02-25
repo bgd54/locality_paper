@@ -48,12 +48,15 @@ atomic adds, which leads to inefficiencies on the GPU.
 Parallel to the above work, the US Department of Energy labs have released a 
 set of proxy applications that represent large internal production codes,
 showing some of the computational and algorithmic challenges to be overcome on 
-novel and emerging architectures Lulesh \cite{LULESH2:changes}, miniAero \cite{miniaero}, BookLeaf\cite{bookleaf}, MiniFE \cite{minife}, PENNANT \cite{pennant}. Out of this suite of codes there are three key approaches to handling data races: (1) allocate large temporary arrays where the 
-intermediate results (i.e. the increments) are placed, avoiding any race 
+novel and emerging architectures Lulesh \cite{LULESH2:changes}, 
+miniAero~\cite{miniaero}, BookLeaf~\cite{bookleaf}, MiniFE~\cite{minife}, 
+PENNANT~\cite{pennant}. Out of this suite of codes there are three key 
+approaches to handling data races: (1) allocate large temporary arrays where 
+the intermediate results (i.e. the increments) are placed, avoiding any race 
 conditions, followed by the use of a separate kernel to gather the results, 
-(2) use atomics, (3) use coloring. These all lead to increased warp divergence and high data access 
-latencies on GPUs; and the use of the temporary array also leads to more 
-data allocations and movement, further constraining bandwidth. 
+(2) use atomics, (3) use coloring. These all lead to increased warp divergence 
+and high data access latencies on GPUs; and the use of the temporary array also 
+leads to more data allocations and movement, further constraining bandwidth. 
 
 The research detailed in the present work is based on previous work 
 in~\cite{op2}, where the OP2 library's GPU paralleization use shared memory on 
@@ -64,3 +67,31 @@ porting a specific application to use these techniques we present our methods
 as a classical library that can be used in general to accelerate unstructured 
 mesh applications, and in particular the indirect increment algorithmic 
 pattern, on GPUs.
+
+Most applications of interest for our work implements finite volume algorithms, 
+and low order finite element algorithms, which has a lower computational 
+intensity compared to the number of memory transactions. Thus our optimizations 
+are targeted to avoid data movement, exploiting locality. In contrast high 
+order finite element methods usually have significantly higher computational 
+intensity, where here is a higher number of computations per data element 
+accessed that can hide the cost of the memory access. While our techniques could 
+potentially improve locality, memory bandwidth is less of a concern for such 
+applications.
+
+
+% In most finite volume algorithms, and low order finite element algorithms the 
+% ratio of computations to number of bytes is relatively low - at least 
+% compared to the ideal balance on modern GPUs. Therefore the proper usage of 
+% the memory system for such simulations is crucial to get good performance. 
+% High order finite elements usually have much higher computational 
+% requirements, thus memory bandwidth is less of a concern. The throughput of 
+% memory accesses is the main bottleneck for a large class of applications, thus 
+% our goal is to lower the impact of the memory transactions. Since in most 
+% applications of interest, there isn't enough computations to hide the cost of 
+% memory movement, we can either increase the number of memory transactions in 
+% flight (to more efficiently utilise bandwidth), or decrease the number of 
+% memory transactions. To achieve the latter goal, a common technique is the use 
+% of shared memory within CUDA thread blocks as an explicitly managed cache, 
+% because it has much higher bandwidth and lower latency than global memory. The 
+% challenge then is to maximise data re-use within shared memory, and optimise 
+% access patterns to both shared and global memory. 

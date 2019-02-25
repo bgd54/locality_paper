@@ -27,20 +27,20 @@ Previous work has utilized one of three approaches for handling data races
 during parallelization~\cite{LULESH:spec,miniaero}: (1) use coloring where the 
 iteration set is ``colored'' such that no two iterations of the same color 
 modify the same mesh element indirectly, followed by parallel execution of the 
-iterations with the same color, (2) use large temporary datasets to 
-stage increments without race conditions, and a separate step to gather the 
-increments, or (3) use atomics to handle race conditions. However, the amount of 
-parallelism, and especially the data locality available to be 
-exploited with the above methods have become increasingly limited on modern and 
-emerging massively parallel multi-core and many-core architectures. The 
-performance gains have been limited particularly on many-core processors such as 
-GPUs with thousands of low-power cores, but with modest memory-bandwidth. 
-Thus, reducing data movement and exploiting memory locality during execution is 
-vital on such devices. On GPUs, the first two techniques, coloring or using 
-temporary datasets, end up with poor data locality as one cannot have good data 
-reuse in both reading data as well as writing data without conflicts. The third 
-method, atomics, are much more expensive operations than regular memory 
-transactions and therefore usually lead to low throughput. 
+iterations with the same color, (2) use large temporary datasets to stage 
+increments without race conditions, and a separate step to gather the 
+increments, or (3) use atomics to handle race conditions. However, the amount 
+of parallelism, and especially the data locality available to be exploited with 
+the above methods have become increasingly limited on modern and emerging 
+massively parallel multi-core and many-core architectures. The performance gains 
+have been limited particularly on many-core processors such as GPUs with 
+thousands of low-power cores, but with modest memory-bandwidth. Thus, reducing 
+data movement and exploiting memory locality during execution is vital on such 
+devices. On GPUs, the first two techniques, coloring or using temporary 
+datasets, end up with poor data locality as one cannot have good data reuse in 
+both reading data as well as writing data without conflicts. The third method, 
+atomics, are much more expensive operations than regular memory transactions and 
+therefore usually lead to low throughput. 
 
 In this paper we explore novel data-movement avoiding and locality exploiting 
 algorithms for improving performance of unstructured-mesh applications on GPUs. 
@@ -49,7 +49,7 @@ we demonstrate how superior execution strategies can be obtained by utilizing
 a combination of techniques from (1) element reordering at thread-block level, 
 (2) use of GPU shared memory as an explicitly managed cache and (3) use of 
 partitioning algorithms for thread-block formation. We show how these allow us 
-to maximise data re-use to the higher-bandwidth shared memory, and optimize 
+to maximize data re-use to the higher-bandwidth shared memory, and optimize 
 access patterns to both shared and GPU global memory. More specifically, we make 
 the following contributions:
 \begin{enumerate}
@@ -90,3 +90,4 @@ the open source library.
 
 \subsection{Related Work}\label{sec:related-works}
 \input{relatedwork}
+
