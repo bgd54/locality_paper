@@ -110,11 +110,17 @@ large as the number of components in the structure.
 The use of shared memory of course leads to one additional complication. 
 Writing back the updated patches of shared-memory to GPU global memory may lead 
 to data races. This leads to the use of a \emph{two-layered coloring} or 
-\emph{hierarchical coloring}~\cite{op2} scheme. The blocks as well as the 
-threads within a block is colored (Figure \ref{fig:unstructured_hier}). The 
-former is to avoid data races when thread blocks write the result back to 
-global memory and the latter is to avoid threads writing their results into 
+\emph{hierarchical coloring}~\cite{op2} scheme. The two levels of coloring are illustrated in Figure \ref{fig:multilevel}, and the associated data accesses are shown in Figure \ref{fig:unstructured_hier}. The 
+first level of coloring is to avoid data races when thread blocks write the result back to 
+global memory and the second level is to avoid threads writing their results into 
 shared memory at the same time. 
+
+\begin{figure}[Htpb]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig/multilevel.pdf}
+  \caption{Schematic figure of the two levels of coloring.}
+  \label{fig:multilevel}
+\end{figure}
 
 \begin{figure}[Htpb]
   \centering
@@ -260,7 +266,7 @@ in the applications we measured are very similar topologically (in fact, except
 for one of the applications we tested, Airfoil, there is only one mapping in 
 each application), we used the first method. However, the algorithm fails to 
 take into account that on the GPU the threads are grouped into blocks, and data 
-reuse can only realistically be exploited within blocks. The next algorithm 
+reuse can only realistically be exploited within blocks. This results in blocks that are ``pencil-shaped''. The next algorithm 
 addresses this limitation.
 
 \subsubsection{Partitioning based reordering}
@@ -341,7 +347,7 @@ heuristic reordering of data points is used to account for this.
 The idea is to group data points together (in a contiguous chunk of memory) that
 are read/written by the same set of blocks: this makes them more likely to be
 loaded in the same cache line. This is even more important when more blocks
-access the same group of data points, since then inefficiencise will worsen
+access the same group of data points (set elements on the boundary), since then inefficiencise will worsen
 performance for each of these blocks. As a simple heuristic, we group data
 points with the same number of blocks that access them together (by sorting),
 and within these groups, we sort by the indices of the accessing blocks
@@ -362,10 +368,10 @@ be sorted by their color. Then threads with the same color will be next to each
 other, so warps will have fewer threads of different colors. This results in 
 reduced warp divergence on average.
 
-Marking pointers to data on the GPU with \lstinline!__restrict__! and 
+Marking pointers to data on the GPU with \lstinline!\_\_restrict\_\_! and 
 \lstinline!const! where applicable enables the compiler to apply further 
 reordering optimizations, which it would not have deemed safe to do otherwise. 
-\lstinline!__restrict__! instructs the compiler that the pointers do not 
+\lstinline!\_\_restrict\_\_! instructs the compiler that the pointers do not 
 \emph{alias} one another, ie. do not point to the same memory space. The 
 \lstinline!const! enables the compiler to place the data in texture cache that 
 has lower latency than the global memory.

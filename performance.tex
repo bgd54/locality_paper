@@ -452,11 +452,11 @@ this code for our tests was to remove these parts from the kernel.
 
 The \texttt{IntegrateStressForElems} kernel uses a mapping with 8 neighbors for 
 the brick elements (compared to the 2--4 as in the case of the previous 
-application kernels). As a result, the number of colors is quite high: $8$, $16$ 
+application kernels). As a result, the number of block colors is quite high: $8$, $16$ 
 and $24$ in the global coloring versions (for the different reorderings), and 
 $4$, $5$ and $15$ in the hierarchical coloring versions. The number of thread 
 colors was also quite high: $4$ in the non-reordered ($4.5$ in the GPS) and 
-$11.6$ in the partitioned version. This is a much larger increase compared to 
+$11.6$ in the partitioned version. The non-reordered and GPS versions yield blocks that have ``pencil shape'', thus requiring fewer thread colors, whereas the partitioned version yields more cubical shaped blocks, leading to the higher number of thread colors. This is a much larger increase compared to 
 the previous applications (Table~\ref{tab:lulesh_counters_hier}). At the same 
 time of course, data reuse is higher compared to 2D applications - between 
 $2.6$ and $4.8$.

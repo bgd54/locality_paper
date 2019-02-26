@@ -7,10 +7,7 @@ guide to the workflow involved.
 
 There are two primary concerns for deployment. First, given an existing 
 application, its current data layout may need to change to accommodate AoS, SoA 
-or reordering of mesh elements. \textbf{[What do you mean here?]}  This will 
-also include the need for any auxiliary datasets to be computed (e.g. exact 
-block sizes when using partitioning-based reordering). \textbf{[end-What do you 
-mean here?]} Data layout reorganization has a one-off cost, and needs to be 
+or reordering of mesh elements. Data layout reorganization has a one-off cost, and needs to be 
 performed during initialization. Changing data-layouts between different 
 computational kernels is usually prohibitively expensive and therefore avoided. 
 Reordering will not affect direct kernels, but it will affect indirect kernels. 
