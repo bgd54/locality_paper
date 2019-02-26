@@ -368,10 +368,10 @@ be sorted by their color. Then threads with the same color will be next to each
 other, so warps will have fewer threads of different colors. This results in 
 reduced warp divergence on average.
 
-Marking pointers to data on the GPU with \lstinline!\_\_restrict\_\_! and 
+Marking pointers to data on the GPU with \lstinline!__restrict__! and 
 \lstinline!const! where applicable enables the compiler to apply further 
 reordering optimizations, which it would not have deemed safe to do otherwise. 
-\lstinline!\_\_restrict\_\_! instructs the compiler that the pointers do not 
+\lstinline!__restrict__! instructs the compiler that the pointers do not 
 \emph{alias} one another, ie. do not point to the same memory space. The 
 \lstinline!const! enables the compiler to place the data in texture cache that 
 has lower latency than the global memory.
