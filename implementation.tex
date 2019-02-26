@@ -146,14 +146,4 @@ partitioning algorithm in the Scotch library, but that failed to stay within
 tolerance (and half of the blocks in the partition were empty, others were
 larger then requested).
 
-It must be noted that these algorithms were developed for distributing workloads
-on computing clusters that typically have much larger block size to total size
-ratio. This also caused the reordering (partitioning) phase to be quite long:
-even minutes; but this is a one-off cost: the reordering can be saved from the
-library and reused many times later. Further improvement could be achieved by
-using the parallel versions of the METIS library: ParMETIS\cite{parmetis} and
-the alpha version mt-Metis\cite{mtmetis} libraries. Partitioning algorithms
-targeting specifically small partition sizes required for CUDA thread blocks are
-a target of future research.
-
 % vim:set et sts=2 sw=2 ts=2 tw=80:

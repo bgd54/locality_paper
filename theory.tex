@@ -344,14 +344,26 @@ performance is not the number of data points accessed, but rather the number of
 cache lines (of size 32 bytes on the hardware used) that are accessed. A simple 
 heuristic reordering of data points is used to account for this. 
 
-The idea is to group data points together (in a contiguous chunk of memory) that
-are read/written by the same set of blocks: this makes them more likely to be
-loaded in the same cache line. This is even more important when more blocks
-access the same group of data points (set elements on the boundary), since then inefficiencise will worsen
-performance for each of these blocks. As a simple heuristic, we group data
-points with the same number of blocks that access them together (by sorting),
-and within these groups, we sort by the indices of the accessing blocks
-lexicographically.
+The idea is to group data points together (in a contiguous chunk of memory)
+that are read/written by the same set of blocks: this makes them more likely to
+be loaded in the same cache line. This is even more important when more blocks
+access the same group of data points (set elements on the boundary), since then
+inefficiencise will worsen performance for each of these blocks. As a simple
+heuristic, we group data points with the same number of blocks that access them
+together (by sorting), and within these groups, we sort by the indices of the
+accessing blocks lexicographically.
+
+It must be noted that GPS and METIS were developed for distributing workloads on
+computing clusters that typically have much larger block size to total size
+ratio. This also caused the reordering (partitioning) phase to be quite long:
+for example, the GPS reordering took 5 seconds, the partitioning 60--90 seconds
+and the hierarchical colouring 5--9 seconds (depending on the block size and
+whether the mesh was partitioned) on the mesh used by Airfoil. However, this is
+a one-off cost: the reordering can be reused many times later. Further
+improvement could be achieved by using the parallel versions of the METIS
+library: ParMETIS\cite{parmetis} and the alpha version mt-Metis\cite{mtmetis}
+libraries. Partitioning algorithms targeting specifically small partition sizes
+required for CUDA thread blocks are a target of future research.
 
 \subsection{Further optimizations}\label{optimisations}
 
