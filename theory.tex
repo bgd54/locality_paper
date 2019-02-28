@@ -355,7 +355,7 @@ accessing blocks lexicographically.
 
 It must be noted that GPS and METIS were developed for distributing workloads on
 computing clusters that typically have much larger block size to total size
-ratio. This also caused the reordering (partitioning) phase to be quite long:
+ratio. This also caused the reordering (partitioning) phase, running on a single CPU core, to be quite long:
 for example, the GPS reordering took 5 seconds, the partitioning 60--90 seconds
 and the hierarchical colouring 5--9 seconds (depending on the block size and
 whether the mesh was partitioned) on the mesh used by Airfoil. However, this is
@@ -363,7 +363,7 @@ a one-off cost: the reordering can be reused many times later. Further
 improvement could be achieved by using the parallel versions of the METIS
 library: ParMETIS\cite{parmetis} and the alpha version mt-Metis\cite{mtmetis}
 libraries. Partitioning algorithms targeting specifically small partition sizes
-required for CUDA thread blocks are a target of future research.
+required for CUDA thread blocks, and improving its performance were out of scope for this work.
 
 \subsection{Further optimizations}\label{optimisations}
 
