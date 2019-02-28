@@ -10,18 +10,18 @@ and academic research codes (e.g. OpenFOAM~\cite{OpenFoamUserGuide}, Rolls-Royce
 Hydra~\cite{moinier2002edge}, FUN3D~\cite{biedron2017fun3d}). All such 
 applications use unstructured meshes in some shape or form, and are often used 
 for large experiments, consisting of millions or even billions of mesh elements. 
-These codes are often critical to production and consume large portions of 
+These codes are generally critical to production and consume large portions of 
 high-performance computing systems time. As such, the efficient execution of 
 these applications on the parallel architectures of the day has been and 
 continues to be crucial to the organizations and stake-holders that have 
 invested in them for continued scientific delivery. Over the years, many works 
 have discussed and presented techniques for efficient implementations, initially 
 focusing on traditional CPU architectures~\cite{mavriplis2002parallel, 
-jin1999openmp}, then many-core processors such as GPUs, and 
-even architectures such as FPGAs~\cite{nagy2014accelerating, 
+jin1999openmp}, then many-core processors such as GPUs (as we discuss below), 
+and even architectures such as FPGAs~\cite{nagy2014accelerating, 
 akamine2012reconfigurable}. Many libraries have also been developed targeting 
-unstructured-mesh solvers, from classical libraries~\cite{trilinos, PETSc} to domain specific 
-languages~\cite{devito2011liszt, giles2012op2, pyfr2016}. 
+unstructured-mesh solvers, from classical libraries~\cite{trilinos, PETSc} to 
+domain specific languages~\cite{devito2011liszt, giles2012op2, pyfr2016}. 
 
 The adoption of GPUs for these kind of computations has already led to 
 considerable speedups over traditional CPU architectures due to the 
@@ -65,14 +65,15 @@ and data, to increase data reuse and maximize data locality. Instead of directly
 porting a specific application to use these techniques we present our methods 
 as a classical library that can be used in general to accelerate unstructured 
 mesh applications, and in particular the indirect increment algorithmic 
-pattern, on GPUs.
+pattern, on GPUs. \textbf{[Is the utilization of this classical library 
+presented in the paper given that we removed the appendix ? - Gihan]}
 
 Most applications of interest for our work implements finite volume algorithms, 
 and low order finite element algorithms, which has a lower computational 
 intensity compared to the number of memory transactions. Thus our optimizations 
 are targeted to avoid data movement, exploiting locality. In contrast high 
 order finite element methods usually have significantly higher computational 
-intensity, where here is a higher number of computations per data element 
+intensity, where there is a higher number of computations per data element 
 accessed that can hide the cost of the memory access. While our techniques could 
 potentially improve locality, memory bandwidth is less of a concern for such 
 applications.

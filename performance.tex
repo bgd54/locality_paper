@@ -81,10 +81,10 @@ and explain why certain variants are better than others.
 
 \subsubsection{Airfoil}
 
-Airfoil, implemented using the OP2 DSL~\cite{op2} is the smallest, best 
-understood and most thoroughly studied among the applications we explored. It is 
-representative of large industrial Finite Volume CFD applications and implements 
-a non-linear 2D inviscid airfoil code using an unstructured grid. A 
+\noindent Airfoil, implemented using the OP2 DSL~\cite{op2} is the smallest, 
+best understood and most thoroughly studied among the applications we explored. 
+It is representative of large industrial Finite Volume CFD applications and 
+implements a non-linear 2D inviscid airfoil code using an unstructured grid. A 
 finite-volume discretization is used to solve the 2D Euler equations with a 
 scalar numerical dissipation. The algorithm iterates towards the steady state 
 solution, in each iteration using a control volume approach, meaning the change 
@@ -107,8 +107,8 @@ each of the 2 indirectly accessed cells, and reads 2 double values from each of
 the 2 indirectly accessed nodes. 
 
 Table \ref{tab:airfoil_counters_glob} show the effect of various optimizations 
-on the Airfoil application's \texttt{res\_calc} kernel, during the execution of 
-on an mesh with 2.8 million cells.
+on the Airfoil application's \texttt{res\_calc} kernel, during the execution on 
+a mesh with 2.8 million cells.
 
 
 \begin{table}[Htbp]
@@ -146,9 +146,9 @@ Issue Stall Reasons (Data Request)&-&-&-&-&    $  69\%$ &   $  68\%$ &      $
 Block Size &\multicolumn{8}{c||}{$480$} &   $128$\\\hline
 \end{tabular}
 }
-\caption{Low-level performance metrics of \texttt{res\_calc} - global 
-coloring vs hierarchical coloring (2.8 million mesh cells). The last column 
-details the measured performance of the original code.}
+\caption{Low-level performance metrics of Airfoil's \texttt{res\_calc} kernel - 
+global coloring vs hierarchical coloring (2.8 million mesh cells). The last 
+column details the measured performance of the original code.}
 \label{tab:airfoil_counters_glob}
 \end{table}
 
@@ -202,17 +202,17 @@ The useful bandwidth of the best performing version of \texttt{res\_calc}
 \begin{figure}[Htbp]
 \centering
 \includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large.eps}
-\caption{\texttt{res\_calc} bandwidth on a dataset with $2880000$ cells with
-hierarchical coloring.}
-\label{fig:airfoil_bw-vs-bs_hier_large}
+\caption{Airfoil's \texttt{res\_calc} bandwidth on a dataset with $2880000$ 
+cells with hierarchical coloring. Note that the y-axis doesn't start at the 
+origin.} \label{fig:airfoil_bw-vs-bs_hier_large}
 \end{figure}
 
 \begin{figure}[Htbp]
 \centering
 \includegraphics[width=10cm]{fig/airfoil_speedup_large.eps}
-\caption{\texttt{res\_calc} kernel speedup compared to the original code (on 
-a mesh with $2800000$ cells. The block sizes are shown in parentheses, the 
-reordering algorithms are: the original reordering (NR), GPS reordering and 
+\caption{Airfoil's \texttt{res\_calc} kernel speedup compared to the original 
+code (on a mesh with $2800000$ cells. The block sizes are shown in parentheses, 
+the reordering algorithms are: the original reordering (NR), GPS reordering and 
 partitioning (part.)}
 \label{fig:airfoil_speedup_large}
 \end{figure}
@@ -220,11 +220,12 @@ partitioning (part.)}
 
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large_volta.eps}
-  \caption{\texttt{res\_calc} bandwidth on a dataset with $2880000$ cells with
-  hierarchical colouring, on Volta architecture.}
-  \label{fig:airfoil_bw-vs-bs_hier_large_volta}
+\centering
+\includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large_volta.eps}
+\caption{Airfoil's \texttt{res\_calc} bandwidth on a dataset with $2880000$ 
+cells with hierarchical colouring, on Volta architecture. Note that the 
+y-axis doesn't start at the origin.} 
+\label{fig:airfoil_bw-vs-bs_hier_large_volta}
 \end{figure}
 
 Similar results were obtained on the newer Volta GPUs (V100) as illustrated in 
@@ -289,8 +290,9 @@ can be better hidden by running warps from other blocks.
 \begin{figure}[Htbp]
   \centering
   \includegraphics[width=10cm]{fig/volna_bw-vs-bs_hier.eps}
-  \caption{\texttt{SpaceDiscretization} kernel bandwidth on a mesh with
-  $3589735$ edges using hierarchical coloring.}
+  \caption{Volna's \texttt{SpaceDiscretization} kernel bandwidth on a mesh with
+  $3589735$ edges using hierarchical coloring. Note that the y-axis doesn't
+  start at the origin.}
   \label{fig:volna_bw-vs-bs_hier}
 \end{figure}
 
@@ -339,22 +341,21 @@ Warp Execution Efficiency &   $  98\%$ &   $  98\%$ &   $  97\%$ &   $  97\%$ &
 Block size &  \multicolumn{4}{c||}{$307$} & $128$\\\hline
 \end{tabular}
 }
-\caption{Low-level performance metrics of \texttt{SpaceDiscretization} - 
-hierarchical coloring. The last column details the measured performance of 
-the original code.}
+\caption{Low-level performance metrics of Volna's \texttt{SpaceDiscretization} 
+kernel - hierarchical coloring. The last column details the measured performance 
+of the original code.}
 \label{tab:volna_counters_hier}
 \end{table}
 
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/volna_speedup.eps}
-  \caption{\texttt{SpaceDiscretization} kernel speedup compared to the 
-original
-  code, done on a mesh with $3589735$ edges. The block sizes are shown in
-  parentheses, the reordering algorithms are: the original reordering (NR), GPS
-  reordering and partitioning (part.)}
-  \label{fig:volna_speedup}
+\centering
+\includegraphics[width=10cm]{fig/volna_speedup.eps}
+\caption{Volna's \texttt{SpaceDiscretization} kernel speedup compared to the 
+original code, done on a mesh with $3589735$ edges. The block sizes are shown 
+in parentheses, the reordering algorithms are: the original reordering (NR), 
+GPS reordering and partitioning (part.)}
+\label{fig:volna_speedup}
 \end{figure}
 
 
@@ -391,28 +392,31 @@ writes, respectively. Such a large difference between reads and writes is also
 due to \texttt{getacc\_scatter} having no indirect reads, similar to 
 like \texttt{SpaceDiscretization} in Volna. 
 
-The best performance we achieved with \texttt{getacc\_scatter} results in about
+\textbf{[The best speedup achieved for the \texttt{getacc\_scatter} kernel is 
+not mentioned. Probably should do this here with a reference to Figure 12, 
+which is not mentioned anywhere in the text as far as I could see - Gihan]} The 
+best performance we achieved with \texttt{getacc\_scatter} results in about
 $2\%$ performance increase for the the whole application. The useful bandwidth
 also increased and reached $83\%$ of the peak stream bandwidth of the P100 GPU. 
 On the V100, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
-bandwidth which results in $3\%$ speedup on the whole application 
-compared to the original.
+bandwidth which results in $3\%$ \textbf{[run time ? - Gihan]} speedup on the 
+whole application compared to the original.
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/bookleaf_bw-vs-bs_hier.eps}
-  \caption{\texttt{getacc\_scatter} kernel bandwidth on a mesh with $4000000$
-  edges using hierarchical colouring.}
-  \label{fig:bookleaf_bw-vs-bs_hier}
+\centering
+\includegraphics[width=10cm]{fig/bookleaf_bw-vs-bs_hier.eps}
+\caption{Bookleaf's \texttt{getacc\_scatter} kernel bandwidth on a mesh with 
+$4000000$ edges using hierarchical colouring. Note that the y-axis does not 
+start at the origin.} \label{fig:bookleaf_bw-vs-bs_hier}
 \end{figure}
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/bookleaf_speedup.eps}
-  \caption{\texttt{getacc\_scatter} kernel speedup compared to the original
-  code, done on a mesh with $4000000$ edges. The block sizes are shown in
-  parentheses, the reordering algorithms are: the original reordering (NR), GPS
-  reordering and partitioning (part.)}
+\centering
+\includegraphics[width=10cm]{fig/bookleaf_speedup.eps}
+\caption{Bookleaf's \texttt{getacc\_scatter} kernel speedup compared to the 
+original code, done on a mesh with $4000000$ edges. The block sizes are shown 
+in parentheses, the reordering algorithms are: the original reordering (NR), 
+GPS reordering and partitioning (part.)}
   \label{fig:bookleaf_speedup}
 \end{figure}
 
@@ -453,10 +457,12 @@ application kernels). As a result, the number of block colors is quite high: $8$
 and $24$ in the global coloring versions (for the different reorderings), and 
 $4$, $5$ and $15$ in the hierarchical coloring versions. The number of thread 
 colors was also quite high: $4$ in the non-reordered ($4.5$ in the GPS) and 
-$11.6$ in the partitioned version. The non-reordered and GPS versions yield blocks that have ``pencil shape'', thus requiring fewer thread colors, whereas the partitioned version yields more cubical shaped blocks, leading to the higher number of thread colors. This is a much larger increase compared to 
-the previous applications (Table~\ref{tab:lulesh_counters_hier}). At the same 
-time of course, data reuse is higher compared to 2D applications - between 
-$2.6$ and $4.8$.
+$11.6$ in the partitioned version. The non-reordered and GPS versions yield 
+blocks that have ``pencil shape'', thus requiring fewer thread colors, whereas 
+the partitioned version yields more cubical shaped blocks, leading to the higher 
+number of thread colors. This is a much larger increase compared to the previous 
+applications (Table~\ref{tab:lulesh_counters_hier}). At the same time of course, 
+data reuse is higher compared to 2D applications - between $2.6$ and $4.8$.
 
 The other aspect in which LULESH is differs is that it uses a high amount of
 registers ($96$), which significantly decreases occupancy: with block size 320, 
@@ -468,21 +474,23 @@ there was only one block running on each multiprocessor. The difference in
 achieved occupancy also means that the SoA version with two blocks 
 per multiprocessor gives better performance. Nevertheless, as shown in Figure 
 \ref{fig:lulesh_speedup}, the hierarchical coloring algorithm performs 
-significantly better than the original, two-step implementation, and also uses 
-much less memory. Although the original requires less synchronization, the 
-resulting warp divergence also cannot be hidden if the occupancy is this low.
+significantly better (giving a $75\%$ speedup) than the original two-step 
+implementation, and also uses much less memory. Although the original requires 
+less synchronization, the resulting warp divergence also cannot be hidden if the 
+occupancy is this low.
  
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/lulesh_bw-vs-bs_hier.eps}
-  \caption{\texttt{IntegrateStressForElems} kernel bandwidth on a mesh with
-  $4913000$ cells using hierarchical colouring.}
+\centering
+\includegraphics[width=10cm]{fig/lulesh_bw-vs-bs_hier.eps}
+\caption{LULESH's \texttt{IntegrateStressForElems} kernel bandwidth on a mesh 
+with $4913000$ cells using hierarchical colouring. Note that the y-axis 
+doesn't start at the origin.}
   \label{fig:lulesh_bw-vs-bs_hier}
 \end{figure}
 
-In the original version $37\%$ of the total time is spent in 
-\texttt{IntagrateStressForElems}, therefore the achieved $75\%$ speedup on
-the kernel gives about $28\%$ speedup on the whole application. The
+In the original application version $37\%$ out of the total time is spent in 
+the \texttt{IntagrateStressForElems} kernel, therefore the achieved $75\%$ 
+speedup on the kernel gives about $28\%$ speedup on the whole application. The
 useful bandwidth in case of the best version of \texttt{IntegrateStressForElems}
 reached $20\%$ of the peak stream bandwidth on the P100 GPU. On the V100, 
 we achieved $84\%$ speedup for this kernel compared to the
@@ -492,13 +500,13 @@ original version $35\%$ of the total time is spent in
 results in about $29\%$ speedup on the whole application.
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/lulesh_speedup.eps}
-  \caption{\texttt{IntegrateStressForElems} kernel speedup compared to the
-  original (gathering) code, done on a mesh with $4913000$ cells. The block
-  sizes are shown in parentheses, the reordering algorithms are: the original
-  reordering (NR), GPS reordering and partitioning (part.)}
-  \label{fig:lulesh_speedup}
+\centering
+\includegraphics[width=10cm]{fig/lulesh_speedup.eps}
+\caption{LULESH's \texttt{IntegrateStressForElems} kernel speedup compared to 
+the original (gathering) code, done on a mesh with $4913000$ cells. The block
+sizes are shown in parentheses, the reordering algorithms are: the original
+reordering (NR), GPS reordering and partitioning 
+(part.)} \label{fig:lulesh_speedup}
 \end{figure}
 
 \begin{table}[Htbp]
@@ -543,13 +551,11 @@ $     427$ &   $     474$  & -\\
     \hline
   \end{tabular}
   }
-\caption{ Low-level performance metrics of \texttt{IntegrateStressForElems} - 
-hierarchical coloring. The last column details the measured performance of 
-the original kernel.}
-  \label{tab:lulesh_counters_hier}
+\caption{Low-level performance metrics of LULESH's 
+\texttt{IntegrateStressForElems} kernel - hierarchical coloring. The last column 
+details the measured performance of the original kernel.}  
+\label{tab:lulesh_counters_hier}
 \end{table}
-
-% ******* here ******** 
 
 \subsubsection{miniAero}\label{sec:mini-aero-summary}
 
@@ -589,20 +595,20 @@ pipelines at such low occupancy.
 
 The amount of data indirectly accessed by the kernel is also significant: each 
 thread accesses $2$ data points indirectly, each holding $32$ double precision 
-values. If all of these values are is loaded into shared memory, the size 
-exceeds the hardware limits with block sizes larger than $288$; it didn't run 
-with the original mesh numbering with any block size, and only with smaller 
-block sizes on the reordered meshes (Figure \ref{fig:mini_aero_bw_crash}). The 
-other measurements were carried out by only loading the incremented data into 
-shared memory.
+values. If all of these values are loaded into shared memory, the size exceeds 
+the hardware limits with block sizes larger than $288$; it didn't run with the 
+original mesh numbering with any block size, and only with smaller block sizes 
+on the reordered meshes (Figure \ref{fig:mini_aero_bw_crash}). The other 
+measurements were carried out by only loading the incremented data into shared 
+memory.
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/mini_aero_bw_crash.eps}
-  \caption{The \texttt{compute\_face\_flux} kernel bandwidth on a mesh with
-  $6242304$ faces. The kernel didn't run in the cases where the data reuse was
-  not high enough because the large amount of shared memory needed; these are
-  shown here with $0$ bandwidth.}
+\centering
+\includegraphics[width=10cm]{fig/mini_aero_bw_crash.eps}
+\caption{miniAero's \texttt{compute\_face\_flux} kernel bandwidth on a mesh 
+with $6242304$ faces. The kernel didn't run in the cases where the data reuse 
+was not high enough because the large amount of shared memory needed; these 
+are shown here with $0$ bandwidth.}
   \label{fig:mini_aero_bw_crash}
 \end{figure}
 
@@ -617,35 +623,35 @@ costly operations prevented high performance gains in the case of the
 partitioned version (Figure \ref{fig:mini_aero_bw_small-cache}).
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/mini_aero_bw_small-cache.eps}
-  \caption{The \texttt{compute\_face\_flux} kernel bandwidth on a mesh with
-  $6242304$ faces. The shared memory was only used to cache the increments,
-  reducing the need for large shared memory size. The kernel didn't fit into the
-  shared memory with block sizes larger than $384$ or if not reordered because
-  the large amount of shared memory needed; these are shown here with $0$
-  bandwidth.}
-  \label{fig:mini_aero_bw_small-cache}
+\centering
+\includegraphics[width=10cm]{fig/mini_aero_bw_small-cache.eps}
+\caption{miniAero's \texttt{compute\_face\_flux} kernel bandwidth on a mesh 
+with $6242304$ faces. The shared memory was only used to cache the increments,
+reducing the need for large shared memory size. The kernel didn't fit into the
+shared memory with block sizes larger than $384$ or if not reordered because
+the large amount of shared memory needed; these are shown here with $0$
+bandwidth.} \label{fig:mini_aero_bw_small-cache}
 \end{figure}
 
 The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
-outperformed both (Figure \ref{fig:mini_aero_speedup_small-cache}). In the 
-original version $22\%$ of the total time is spent 
-in \texttt{compute\_face\_flux}, therefore the achieved $75\%$ kernel 
-speedup provides about $10\%$ speedup for the whole application. The 
-useful bandwidth in case of the best version of \texttt{compute\_face\_flux} 
-($168$ GB/s) reached $34\%$ of the peak stream bandwidth of the P100 GPU.
+outperformed both \textbf{[by 75\% ?? - Gihan]} (Figure 
+\ref{fig:mini_aero_speedup_small-cache}). In the original version $22\%$ of the 
+total time is spent in \texttt{compute\_face\_flux}, therefore the achieved 
+$75\%$ kernel speedup provides about $10\%$ speedup for the whole application. 
+The useful bandwidth in case of the best version of 
+\texttt{compute\_face\_flux} ($168$ GB/s) reached $34\%$ of the peak stream 
+bandwidth of the P100 GPU.
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=10cm]{fig/mini_aero_speedup_nocache.eps}
-  \caption{The \texttt{compute\_face\_flux} kernel speedup compared to the
-  original code that was using atomic adds, on a mesh with
-  $6242304$ faces. The shared memory was only used to cache the increments,
-  reducing the need for large shared memory size. The last bar shows the
-  relative performance of the original code with the helper array approach.}
-  \label{fig:mini_aero_speedup_small-cache}
+\centering
+\includegraphics[width=10cm]{fig/mini_aero_speedup_nocache.eps}
+\caption{miniAero's \texttt{compute\_face\_flux} kernel speedup compared to 
+the original code that was using atomic adds, on a mesh with $6242304$ faces. 
+The shared memory was only used to cache the increments, reducing the need 
+for large shared memory size. The last bar shows the relative performance of 
+the original code with the helper array approach.}  
+\label{fig:mini_aero_speedup_small-cache}
 \end{figure}
 
 \begin{table}[Htbp]
@@ -693,10 +699,9 @@ $12\%$  & $8\%$\\
     \hline
   \end{tabular}
   }
-  \caption{
-Low-level performance metrics of the \texttt{compute\_face\_flux} kernel - 
-hierarchical coloring. The last column details the measured performance of 
-the original code.}
+\caption{ Low-level performance metrics of the miniAero's 
+\texttt{compute\_face\_flux} kernel - hierarchical coloring. The last column 
+details the measured performance of the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
@@ -711,13 +716,13 @@ $20\%$ speedup for the whole application.
 
 \subsubsection{Analysis of structured meshes}
 
-Recalling that the meshes of miniAero and LULESH are actually structured 
-meshes, generated by the code itself allows us to use their structured 
-nature to create partitions with better shapes as opposed to partitions 
-produced by METIS. This in turn allows us to understand the trade-off between
-high data reuse and number of thread colors.  We create 1D (straight line), 2D 
-(rectangles) and 3D (bricks) shape partitions such that these will have an 
-increasing amount of reuse, and with that, number  of colors. 
+\noindent Recalling that the meshes of miniAero and LULESH are actually 
+structured meshes, generated by the code itself allows us to use their 
+structured nature to create partitions with better shapes as opposed to 
+partitions produced by METIS. This in turn allows us to understand the trade-off 
+between high data reuse and number of thread colors.  We create 1D (straight 
+line), 2D (rectangles) and 3D (bricks) shape partitions such that these will 
+have an increasing amount of reuse, and with that, number  of colors. 
 
 While both kernels operate on 3D Cartesian (hex8) meshes, the LULESH kernel 
 \texttt{IntegrateStressForElems} uses a mapping from cells to their connected 
@@ -755,19 +760,17 @@ usefulness.
 
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=12cm]{fig/lulesh_block.eps}
-  \caption{\texttt{IntegrateStressForElems} kernel with explicitly controlled
-  partitioning. For comparison, the last column shows the result on the same
-  mesh, partitioned by METIS.}
-  \label{fig:lulesh_block}
+\centering
+\includegraphics[width=12cm]{fig/lulesh_block.eps}
+\caption{LULESH's \texttt{IntegrateStressForElems} kernel with explicitly 
+controlled partitioning. For comparison, the last column shows the result on 
+the same mesh, partitioned by METIS.} \label{fig:lulesh_block}
 \end{figure}
 
 \begin{figure}[Htbp]
-  \centering
-  \includegraphics[width=12cm]{fig/mini_aero_block.eps}
-  \caption{\texttt{compute\_face\_flux} kernel with explicitly controlled
-  partitioning. For comparison, the last column shows the result on the same
-  mesh, partitioned by METIS.}
-  \label{fig:mini_aero_block}
+\centering
+\includegraphics[width=12cm]{fig/mini_aero_block.eps}
+\caption{miniAero's \texttt{compute\_face\_flux} kernel with explicitly 
+controlled partitioning. For comparison, the last column shows the result on 
+the same mesh, partitioned by METIS.} \label{fig:mini_aero_block}
 \end{figure}

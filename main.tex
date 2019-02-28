@@ -28,7 +28,8 @@
 
 \begin{frontmatter}
 
-  \title{Improving Locality of Unstructured Mesh Algorithms on GPUs}
+% \title{Improving Locality of Unstructured Mesh Algorithms\\ on GPUs}
+\title{Locality Optimized Unstructured Mesh Algorithms\\ on GPUs}
 
   \author[1,2]{A.A. Sulyok\corref{corres}}
   \ead{sulyok.andras.attila@itk.ppke.hu}
@@ -58,16 +59,16 @@
 finite element algorithms form an important class of applications for many 
 scientific and engineering domains. The key difficulty in achieving higher 
 performance from these applications is the indirect accesses that lead to 
-data-races when parallelized. Current methods for handling these data-races 
+data-races when parallelized. Current methods for handling such data-races 
 lead to reduced parallelism and suboptimal performance. Particularly on modern 
-many-core architectures, such as GPUs, with increasing core/thread counts, 
-reducing data movement and exploiting memory locality is vital for gaining good 
-performance. 
+many-core architectures, such as GPUs, that has increasing core/thread 
+counts, reducing data movement and exploiting memory locality is vital for 
+gaining good performance. 
 
 In this work we present novel locality-exploiting optimizations for the 
 efficient execution of unstructured-mesh algorithms on GPUs. Building on a 
 two-layered coloring strategy for handling data races, we introduce novel 
-reordering and partitioning strategies to further improve efficient execution. 
+reordering and partitioning techniques to further improve efficient execution. 
 The new optimizations are then applied to several well established 
 unstructured-mesh applications, investigating their performance on NVIDIA's 
 latest P100 and V100 GPUs. We demonstrate significant speedups 
@@ -101,15 +102,15 @@ finite volume \sep finite element \sep race condition \sep GPU
 
 \section{Conclusion}\label{conclusion}
 
-In this work we presented a number of novel locality-exploiting optimizations 
-for the efficient execution of unstructured-mesh algorithms on GPUs. The key 
-focus was to improve performance of kernels with indirect increment data-access 
-patterns. We build on well known techniques such as data-layouts (AoS and SoA), 
-graph bandwidth minimizing algorithms, global and hierarchical coloring 
-approaches, exploring efficient execution strategies. A novel reordering 
-algorithm which uses k-way recursive partitioning, together with the use of GPU 
-share-memory implementing a hierarchical coloring method is designed 
-to significantly improve data reuse within CUDA thread blocks.
+\noindent In this work we presented a number of novel locality-exploiting 
+optimizations for the efficient execution of unstructured-mesh algorithms on 
+GPUs. The key focus was to improve performance of kernels with indirect 
+increment data-access patterns. We build on well known techniques such as 
+data-layouts (AoS and SoA), graph bandwidth minimizing algorithms, global and 
+hierarchical coloring approaches for exploring efficient execution strategies. 
+A novel reordering algorithm which uses k-way recursive partitioning, together 
+with the use of GPU share-memory implementing a hierarchical coloring method is 
+designed to significantly improve data reuse within CUDA thread blocks.
 
 The new optimizations are then applied to several well established unstructured
 mesh applications, investigating their performance on NVIDIA’s latest P100
@@ -138,26 +139,29 @@ block has, the more synchronizations it will need, the latency of which can be
 hard to hide when there are few eligible warps.
 
 The locality exploiting optimizations detailed in this paper enable us to 
-achieve performance gains of $20\%$ (Airfoil), $20\%$ (Volna), $75\%$ 
-(Bookleaf), $75\%$ (Lulesh) and $75\%$ (miniAero) over the original 
-implementations on the GPUs tested. These results significantly advance the 
-state of the art, demonstrating that the algorithmic patterns used in most 
-current implementations (particularly in case of US DoE codes represented by 
+improve performance of indirect kernels by $20\%$ on Airfoil, $20\%$ on 
+Volna, $75\%$ on Bookleaf, $75\%$ on Lulesh and $75\%$ on miniAero over the 
+original implementations, on the GPUs tested. These results advances the state 
+of the art, demonstrating that the algorithmic patterns used in most current 
+implementations (particularly in case of US DoE codes represented by 
 LULESH and MiniAero) could be significantly improved upon by the adoption of 
 two-level coloring schemes and partitioning for increased data reuse.
 
 When carrying out this work, it had become clear that partitioning algorithms in
-traditional libraries such as Metis and Scotch were not particularly well suited
-for producing such small partition sizes. As potential future work, we wish to
-explore algorithms that are better optimized for this purpose. The performance
-of these partitioning algorithms was also low - parallelizing this could be
-another interesting challenge. Finally, we are planning to integrate these
-algorithms into the OP2 library, so they can be automatically deployed on
-applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
-or Rolls-Royce Hydra.
+traditional libraries such as Metis and Scotch \textbf{[did we do any tests 
+with Scotch - this is the first time Scotch is mentioned in this paper - 
+Gihan]} were not particularly well suited for producing such small partition 
+sizes. As potential future work, we wish to explore algorithms that are better 
+optimized for this purpose. The performance of these partitioning algorithms 
+was also low - parallelizing this could be another interesting challenge. 
+Finally, we are planning to integrate these algorithms into the OP2 library, so 
+they can be automatically deployed on applications that already use the OP2 
+library, such as Airfoil, BookLeaf, Volna or Rolls-Royce Hydra.
 
 The optimized algorithms are implemented as an open-source software 
-library~\cite{opt-library}.
+library~\cite{opt-library}. 
+% Appendix~\ref{library-implementation} illustrate its use for improving 
+% performance of existing or new unstructured-mesh applications.
 
 \section*{Acknowledgements}
 \noindent Istv\'an Reguly was supported by the J\'anos Bolyai Research 

@@ -24,19 +24,20 @@ synchronization~\cite{Zegard2013}. On the GPU, one would do multiple kernel
 launches corresponding to the colors, so there is no concurrent writes between 
 threads in the same kernel. We call this the \emph{global coloring} approach 
 (Figure \ref{fig:unstructured_global}). The disadvantage here is that there is 
-virtually no data reuse: when multiple elements write the same data, they are scheduled 
-for execution in different launches. Since these operations also tend to read 
-data through the same mappings, there is no data reuse in the reads either. 
-Compounding the issue is low cache line utilization where elements of the same 
-color are not neighbors in the mesh, and therefore unlikely to be stored in 
-consecutive memory locations.
+virtually no data reuse: when multiple elements write the same data, they are 
+scheduled for execution in different launches. Since these operations also tend 
+to read data through the same mappings, there is no data reuse in the reads 
+either. Compounding the issue is low cache line utilization where elements of 
+the same color are not neighbors in the mesh, and therefore unlikely to be 
+stored in consecutive memory locations.
 
 \begin{figure}[Htpb]
   \centering
   \includegraphics{fig/svg/unstructured_global.eps}
-  \caption{Schematic figure of the global colouring approach. In each kernel
-  launch, the kernels work on edges of the same colour. The arrows
-  represent the individual pieces of data loaded indirectly when executing the color red.}
+  \caption{Schematic figure of the global coloring approach. In each kernel
+  launch, the kernels work on edges of the same color. The arrows
+  represent the individual pieces of data loaded indirectly when executing the 
+color red.}
   \label{fig:unstructured_global}
 \end{figure}
 
@@ -62,9 +63,9 @@ up, which is roughly the same as the number of elements themselves.
 \subsubsection{Array-of-Structures (AoS) vs Structure-of-Arrays (SoA)} 
 \label{aos-to-soa}
 
-Due to the lockstep execution, consecutive threads in a warp read  memory at
-the same time. Therefore, the layout of the data in the memory is an important
-factor for performance. There are two commonly used
+\noindent Due to the lockstep execution, consecutive threads in a warp read  
+memory at the same time. Therefore, the layout of the data in the memory is an 
+important factor for performance. There are two commonly used 
 layouts~\cite{sharma2015data}: (1) Array-of-Structures (AoS) layout, where the
 data associated with one element is in consecutive places in the array (and thus
 in memory) and (2) Structure-of-Arrays (SoA) where the components of elements
@@ -89,11 +90,11 @@ later.
 
 \subsection{Shared memory approach}\label{shared-memory-approach}
 
-Considering the three data race avoiding approaches, we see that they all only 
-make use of the GPU global memory. As such one technique to further improve 
-performance is by reducing memory accesses to the GPU global memory. To this 
-end, the OP2 library~\cite{op2} targets the use of the shared memory on the 
-GPUs. Shared memory is only shared within thread blocks, but has much lower 
+\noindent Considering the three data race avoiding approaches, we see that they 
+all only make use of the GPU global memory. As such one technique to further 
+improve performance is by reducing memory accesses to the GPU global memory. To 
+this end, the OP2 library~\cite{op2} targets the use of the shared memory on 
+the GPUs. Shared memory is only shared within thread blocks, but has much lower 
 access latency and higher bandwidth than the global memory. The idea is to 
 collect the data required to perform the computations and load it into shared 
 memory. Then, during computation, the indirect accesses are to the shared
@@ -110,15 +111,18 @@ large as the number of components in the structure.
 The use of shared memory of course leads to one additional complication. 
 Writing back the updated patches of shared-memory to GPU global memory may lead 
 to data races. This leads to the use of a \emph{two-layered coloring} or 
-\emph{hierarchical coloring}~\cite{op2} scheme. The two levels of coloring are illustrated in Figure \ref{fig:multilevel}, and the associated data accesses are shown in Figure \ref{fig:unstructured_hier}. The 
-first level of coloring is to avoid data races when thread blocks write the result back to 
-global memory and the second level is to avoid threads writing their results into 
-shared memory at the same time. 
+\emph{hierarchical coloring}~\cite{op2} scheme. The two levels of coloring are 
+illustrated in Figure \ref{fig:multilevel}, and the associated data accesses are 
+shown in Figure \ref{fig:unstructured_hier}. The first level of coloring is to 
+avoid data races when thread blocks write the result back to global memory and 
+the second level is to avoid threads writing their results into shared memory at 
+the same time. 
 
 \begin{figure}[Htpb]
   \centering
   \includegraphics[width=0.5\textwidth]{fig/multilevel.pdf}
-  \caption{Schematic figure of the two levels of coloring.}
+  \caption{Schematic figure of the two levels of coloring. \textbf{[could you 
+make the font size of ``Block 1'' on the arrow smaller - Gihan]}}
   \label{fig:multilevel}
 \end{figure}
 
@@ -266,8 +270,8 @@ in the applications we measured are very similar topologically (in fact, except
 for one of the applications we tested, Airfoil, there is only one mapping in 
 each application), we used the first method. However, the algorithm fails to 
 take into account that on the GPU the threads are grouped into blocks, and data 
-reuse can only realistically be exploited within blocks. This results in blocks that are ``pencil-shaped''. The next algorithm 
-addresses this limitation.
+reuse can only realistically be exploited within blocks. This results in blocks 
+that are ``pencil-shaped''. The next algorithm addresses this limitation.
 
 \subsubsection{Partitioning based reordering}
 
@@ -348,22 +352,23 @@ The idea is to group data points together (in a contiguous chunk of memory)
 that are read/written by the same set of blocks: this makes them more likely to
 be loaded in the same cache line. This is even more important when more blocks
 access the same group of data points (set elements on the boundary), since then
-inefficiencise will worsen performance for each of these blocks. As a simple
+inefficiencies will worsen performance for each of these blocks. As a simple
 heuristic, we group data points with the same number of blocks that access them
 together (by sorting), and within these groups, we sort by the indices of the
 accessing blocks lexicographically.
 
 It must be noted that GPS and METIS were developed for distributing workloads on
 computing clusters that typically have much larger block size to total size
-ratio. This also caused the reordering (partitioning) phase, running on a single CPU core, to be quite long:
-for example, the GPS reordering took 5 seconds, the partitioning 60--90 seconds
-and the hierarchical colouring 5--9 seconds (depending on the block size and
-whether the mesh was partitioned) on the mesh used by Airfoil. However, this is
-a one-off cost: the reordering can be reused many times later. Further
-improvement could be achieved by using the parallel versions of the METIS
-library: ParMETIS\cite{parmetis} and the alpha version mt-Metis\cite{mtmetis}
-libraries. Partitioning algorithms targeting specifically small partition sizes
-required for CUDA thread blocks, and improving its performance were out of scope for this work.
+ratio. This also caused the reordering (partitioning) phase, running on a 
+single CPU core, to be quite long: for example, the GPS reordering took 5 
+seconds, the partitioning 60--90 seconds and the hierarchical coloring 5--9 
+seconds (depending on the block size and whether the mesh was partitioned) on 
+the mesh used by Airfoil. However, this is a one-off cost: the reordering can 
+be reused many times later. Further improvement could be achieved by using the 
+parallel versions of the METIS library: ParMETIS\cite{parmetis} and the alpha 
+version mt-Metis\cite{mtmetis} libraries. Partitioning algorithms targeting 
+specifically small partition sizes required for CUDA thread blocks, and 
+improving its performance were out of scope for this work.
 
 \subsection{Further optimizations}\label{optimisations}
 
