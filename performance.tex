@@ -69,7 +69,7 @@ compute/memory operations and synchronization
 dependencies, or synchronization,
 \item the number of block colors; the higher it is, the less work in a
 single kernel launch, which tends to lead to lower utilization of the GPU,
-item the number of thread colors; the higher this is the more
+\item the number of thread colors; the higher this is the more
 synchronizations are required to apply the increments in shared memory ---
 but also strongly correlates with data reuse,
 \item warp execution efficiency (ratio of the average active threads per warp
@@ -157,7 +157,7 @@ details the measured performance of the original code.}
 As discussed in Section~\ref{aos-to-soa}, with SoA threads in a warp access data 
 addresses that are near each other. The improvement can also be seen in 
 the number of global memory read transactions as it is roughly $87\%$ of that 
-with AoS layout. Adding the GPS renumbering, improves performance 
+with AoS layout. Adding the GPS renumbering improves performance 
 further by placing data points that are accessed in consecutive threads close 
 to each other. Now there is a $19\%$ reduction in global read transactions 
 compared to the baseline AoS. Given that the partition based reordering is 
@@ -203,7 +203,7 @@ The useful bandwidth of the best performing version of \texttt{res\_calc}
 \centering
 \includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large.eps}
 \caption{\texttt{res\_calc} bandwidth on a dataset with $2880000$ cells with
-hierarchical coloring. Note that the y-axis doesn't start at the origin.}
+hierarchical coloring.}
 \label{fig:airfoil_bw-vs-bs_hier_large}
 \end{figure}
 
@@ -223,8 +223,7 @@ partitioning (part.)}
   \centering
   \includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large_volta.eps}
   \caption{\texttt{res\_calc} bandwidth on a dataset with $2880000$ cells with
-  hierarchical colouring, on Volta architecture. Note that the y-axis doesn't
-  start at the origin.}
+  hierarchical colouring, on Volta architecture.}
   \label{fig:airfoil_bw-vs-bs_hier_large_volta}
 \end{figure}
 
@@ -291,8 +290,7 @@ can be better hidden by running warps from other blocks.
   \centering
   \includegraphics[width=10cm]{fig/volna_bw-vs-bs_hier.eps}
   \caption{\texttt{SpaceDiscretization} kernel bandwidth on a mesh with
-  $3589735$ edges using hierarchical coloring. Note that the y-axis doesn't
-  start at the origin.}
+  $3589735$ edges using hierarchical coloring.}
   \label{fig:volna_bw-vs-bs_hier}
 \end{figure}
 
@@ -404,8 +402,7 @@ compared to the original.
   \centering
   \includegraphics[width=10cm]{fig/bookleaf_bw-vs-bs_hier.eps}
   \caption{\texttt{getacc\_scatter} kernel bandwidth on a mesh with $4000000$
-  edges using hierarchical colouring. Note that the y-axis does not start at the
-  origin.}
+  edges using hierarchical colouring.}
   \label{fig:bookleaf_bw-vs-bs_hier}
 \end{figure}
 
@@ -479,8 +476,7 @@ resulting warp divergence also cannot be hidden if the occupancy is this low.
   \centering
   \includegraphics[width=10cm]{fig/lulesh_bw-vs-bs_hier.eps}
   \caption{\texttt{IntegrateStressForElems} kernel bandwidth on a mesh with
-  $4913000$ cells using hierarchical colouring. Note that the y-axis doesn't
-  start at the origin.}
+  $4913000$ cells using hierarchical colouring.}
   \label{fig:lulesh_bw-vs-bs_hier}
 \end{figure}
 

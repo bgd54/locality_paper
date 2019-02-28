@@ -55,10 +55,10 @@
 \begin{abstract}
 
 \noindent Unstructured-mesh based numerical algorithms such as finite volume and 
-finite element algorithms forms an important class of applications for many 
+finite element algorithms form an important class of applications for many 
 scientific and engineering domains. The key difficulty in achieving higher 
 performance from these applications is the indirect accesses that lead to 
-data-races when parallelized. Current, methods for handling these data-races 
+data-races when parallelized. Current methods for handling these data-races 
 lead to reduced parallelism and suboptimal performance. Particularly on modern 
 many-core architectures, such as GPUs, with increasing core/thread counts, 
 reducing data movement and exploiting memory locality is vital for gaining good 
@@ -157,8 +157,7 @@ applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna
 or Rolls-Royce Hydra.
 
 The optimized algorithms are implemented as an open-source software 
-library~\cite{opt-library}. Appendix~\ref{library-implementation} illustrate its 
-use for improving performance of existing or new unstructured-mesh applications.
+library~\cite{opt-library}.
 
 \section*{Acknowledgements}
 \noindent Istv\'an Reguly was supported by the J\'anos Bolyai Research 

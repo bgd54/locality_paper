@@ -23,7 +23,7 @@ akamine2012reconfigurable}. Many libraries have also been developed targeting
 unstructured-mesh solvers, from classical libraries~\cite{trilinos, PETSc} to domain specific 
 languages~\cite{devito2011liszt, giles2012op2, pyfr2016}. 
 
-The adoption of GPUs for these kind of computations has already lead to 
+The adoption of GPUs for these kind of computations has already led to 
 considerable speedups over traditional CPU architectures due to the 
 massive parallelism available on GPUs~\cite{Reguly2015, ELSEN200810148, 
 cohen2009fast}. Other notable works have further looked at improving 
@@ -36,7 +36,7 @@ finite volume schemes to simulate shallow flows uses auxiliary accumulators to
 avoid data races while indirectly incrementing. Wu et al. 
 \cite{wu2013complexity} introduce caching using the shared memory with 
 partitioning (clustering), but do not use coloring. Instead they use a 
-duplication method similar to that of Lulesh and miniAero, as described below. 
+duplication method similar to that of LULESH and miniAero, as described below. 
 Fu et al. \cite{fu2014architecting} also create contiguous patches (blocks) in 
 the mesh to be loaded into shared memory, although they partition the nodes (the 
 to-set) but not the elements (the from-set of the mapping). Furthermore, they do 
@@ -58,7 +58,7 @@ and high data access latencies on GPUs; and the use of the temporary array also
 leads to more data allocations and movement, further constraining bandwidth. 
 
 The research detailed in the present work is based on previous work 
-in~\cite{op2}, where the OP2 library's GPU paralleization use shared memory on 
+in~\cite{op2}, where the OP2 library's GPU parallelization use shared memory on 
 GPUs using CUDA for caching with a two level ``hierarchical'' coloring. However, 
 we demonstrate superior execution strategies on GPUs with reordering of threads 
 and data, to increase data reuse and maximize data locality. Instead of directly 
