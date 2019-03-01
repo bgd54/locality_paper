@@ -72,7 +72,7 @@ reordering and partitioning techniques to further improve efficient execution.
 The new optimizations are then applied to several well established 
 unstructured-mesh applications, investigating their performance on NVIDIA's 
 latest P100 and V100 GPUs. We demonstrate significant speedups 
-($1.2\text{--}1.75\times$) compared to the state-of-the-art. A range of 
+($1.1\text{--}1.75\times$) compared to the state-of-the-art. A range of 
 performance metrics are benchmarked including runtime, memory transactions, 
 achieved bandwidth performance, GPU occupancy and data reuse factors and 
 are used to understand and explain the key factors impacting performance. The 
@@ -140,7 +140,7 @@ hard to hide when there are few eligible warps.
 
 The locality exploiting optimizations detailed in this paper enable us to 
 improve performance of indirect kernels by $20\%$ on Airfoil, $20\%$ on 
-Volna, $75\%$ on Bookleaf, $75\%$ on Lulesh and $75\%$ on miniAero over the 
+Volna, $9\%$ on Bookleaf, $75\%$ on Lulesh and $75\%$ on miniAero over the 
 original implementations, on the GPUs tested. These results advances the state 
 of the art, demonstrating that the algorithmic patterns used in most current 
 implementations (particularly in case of US DoE codes represented by 
@@ -148,15 +148,14 @@ LULESH and MiniAero) could be significantly improved upon by the adoption of
 two-level coloring schemes and partitioning for increased data reuse.
 
 When carrying out this work, it had become clear that partitioning algorithms in
-traditional libraries such as Metis and Scotch \textbf{[did we do any tests 
-with Scotch - this is the first time Scotch is mentioned in this paper - 
-Gihan]} were not particularly well suited for producing such small partition 
-sizes. As potential future work, we wish to explore algorithms that are better 
-optimized for this purpose. The performance of these partitioning algorithms 
-was also low - parallelizing this could be another interesting challenge. 
-Finally, we are planning to integrate these algorithms into the OP2 library, so 
-they can be automatically deployed on applications that already use the OP2 
-library, such as Airfoil, BookLeaf, Volna or Rolls-Royce Hydra.
+traditional libraries such as METIS and SCOTCH were not particularly well 
+suited for producing such small partition sizes. As potential future work, we 
+wish to explore algorithms that are better optimized for this purpose. The 
+performance of these partitioning algorithms was also low - parallelizing this 
+could be another interesting challenge. Finally, we are planning to integrate 
+these algorithms into the OP2 library, so they can be automatically deployed on 
+applications that already use the OP2 library, such as Airfoil, BookLeaf, Volna 
+or Rolls-Royce Hydra.
 
 The optimized algorithms are implemented as an open-source software 
 library~\cite{opt-library}. 

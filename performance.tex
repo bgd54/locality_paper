@@ -223,7 +223,7 @@ partitioning (part.)}
 \centering
 \includegraphics[width=10cm]{fig/airfoil_bw-vs-bs_hier_large_volta.eps}
 \caption{Airfoil's \texttt{res\_calc} bandwidth on a dataset with $2880000$ 
-cells with hierarchical colouring, on Volta architecture. Note that the 
+cells with hierarchical coloring, on Volta architecture. Note that the 
 y-axis doesn't start at the origin.} 
 \label{fig:airfoil_bw-vs-bs_hier_large_volta}
 \end{figure}
@@ -392,21 +392,18 @@ writes, respectively. Such a large difference between reads and writes is also
 due to \texttt{getacc\_scatter} having no indirect reads, similar to 
 like \texttt{SpaceDiscretization} in Volna. 
 
-\textbf{[The best speedup achieved for the \texttt{getacc\_scatter} kernel is 
-not mentioned. Probably should do this here with a reference to Figure 12, 
-which is not mentioned anywhere in the text as far as I could see - Gihan]} The 
-best performance we achieved with \texttt{getacc\_scatter} results in about
-$2\%$ performance increase for the the whole application. The useful bandwidth
-also increased and reached $83\%$ of the peak stream bandwidth of the P100 GPU. 
-On the V100, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
-bandwidth which results in $3\%$ \textbf{[run time ? - Gihan]} speedup on the 
-whole application compared to the original.
+The best performance we achieved with \texttt{getacc\_scatter} ($1.09\times$ 
+speedup) results in about $2\%$ performance increase for the the whole 
+application. The useful bandwidth also increased and reached $83\%$ of the peak 
+stream bandwidth of the P100 GPU. On the V100, the performance of the kernel was 
+$631$ GB/s ($85\%$ of the peak bandwidth) which results in $3\%$ runtime speedup 
+on the whole application compared to the original.
 
 \begin{figure}[Htbp]
 \centering
 \includegraphics[width=10cm]{fig/bookleaf_bw-vs-bs_hier.eps}
 \caption{Bookleaf's \texttt{getacc\_scatter} kernel bandwidth on a mesh with 
-$4000000$ edges using hierarchical colouring. Note that the y-axis does not 
+$4000000$ edges using hierarchical coloring. Note that the y-axis does not 
 start at the origin.} \label{fig:bookleaf_bw-vs-bs_hier}
 \end{figure}
 
@@ -483,7 +480,7 @@ occupancy is this low.
 \centering
 \includegraphics[width=10cm]{fig/lulesh_bw-vs-bs_hier.eps}
 \caption{LULESH's \texttt{IntegrateStressForElems} kernel bandwidth on a mesh 
-with $4913000$ cells using hierarchical colouring. Note that the y-axis 
+with $4913000$ cells using hierarchical coloring. Note that the y-axis 
 doesn't start at the origin.}
   \label{fig:lulesh_bw-vs-bs_hier}
 \end{figure}
@@ -635,7 +632,7 @@ bandwidth.} \label{fig:mini_aero_bw_small-cache}
 
 The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
-outperformed both \textbf{[by 75\% ?? - Gihan]} (Figure 
+outperformed both with a 75\% speedup (Figure 
 \ref{fig:mini_aero_speedup_small-cache}). In the original version $22\%$ of the 
 total time is spent in \texttt{compute\_face\_flux}, therefore the achieved 
 $75\%$ kernel speedup provides about $10\%$ speedup for the whole application. 
@@ -752,11 +749,13 @@ structured, therefore this is not representative of realistic cases. However,
 these results illustrate clearly that when the number of thread colors are the 
 same, increased reuse leads to better performance. Also, there is an optimal 
 trade off between reuse and the number of thread colors for each application, 
-and performance will suffer above/below that. The challenge lies in finding a 
-partitioning algorithm that can either find the middle ground, or can be tuned 
-along the amount of reuse it aims to achieve. Such partitioning algorithms are 
-not currently available, but the evidence here clearly demonstrate their 
-usefulness. 
+and performance will suffer above/below that. As an alternative to METIS, we 
+explored using SCOTCH~\cite{Pellegrini1996} to create the required partitions. 
+However SCOTCH also did not produce a better partitioning for these 
+applications. The challenge lies in finding a partitioning algorithm that can 
+either find the middle ground, or can be tuned  along the amount of reuse it 
+aims to achieve. Such partitioning algorithms are not currently available, but 
+the evidence here clearly demonstrate their usefulness. 
 
 
 \begin{figure}[Htbp]

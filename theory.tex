@@ -121,8 +121,7 @@ the same time.
 \begin{figure}[Htpb]
   \centering
   \includegraphics[width=0.5\textwidth]{fig/multilevel.pdf}
-  \caption{Schematic figure of the two levels of coloring. \textbf{[could you 
-make the font size of ``Block 1'' on the arrow smaller - Gihan]}}
+  \caption{Schematic figure of the two levels of coloring.}
   \label{fig:multilevel}
 \end{figure}
 
@@ -287,7 +286,7 @@ memory) by different blocks is minimized.
 \begin{figure}[Htpb]
   \centering
   \includegraphics{fig/svg/unstructured_part.eps}
-  \caption{Schematic figure of the hierarchical colouring approach with
+  \caption{Schematic figure of the hierarchical coloring approach with
   partitioning. The thread blocks are circled with dashed lines. The arrows
   represent the individual pieces of data loaded; note that this is less than
   in Figure \ref{fig:unstructured_hier}.}
@@ -366,7 +365,7 @@ seconds (depending on the block size and whether the mesh was partitioned) on
 the mesh used by Airfoil. However, this is a one-off cost: the reordering can 
 be reused many times later. Further improvement could be achieved by using the 
 parallel versions of the METIS library: ParMETIS\cite{parmetis} and the alpha 
-version mt-Metis\cite{mtmetis} libraries. Partitioning algorithms targeting 
+version mt-METIS\cite{mtmetis} libraries. Partitioning algorithms targeting 
 specifically small partition sizes required for CUDA thread blocks, and 
 improving its performance were out of scope for this work.
 

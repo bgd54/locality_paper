@@ -63,10 +63,11 @@ GPUs using CUDA for caching with a two level ``hierarchical'' coloring. However,
 we demonstrate superior execution strategies on GPUs with reordering of threads 
 and data, to increase data reuse and maximize data locality. Instead of directly 
 porting a specific application to use these techniques we present our methods 
-as a classical library that can be used in general to accelerate unstructured 
-mesh applications, and in particular the indirect increment algorithmic 
-pattern, on GPUs. \textbf{[Is the utilization of this classical library 
-presented in the paper given that we removed the appendix ? - Gihan]}
+as general strategies to accelerate unstructured mesh applications, and in 
+particular the indirect increment algorithmic pattern, on GPUs. We have 
+created a classical library as open source software~\cite{opt-library} 
+incorporating these optimizations. The library can be used for improving 
+performance of existing or new unstructured-mesh applications.
 
 Most applications of interest for our work implements finite volume algorithms, 
 and low order finite element algorithms, which has a lower computational 
