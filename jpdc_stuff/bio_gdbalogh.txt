@@ -1,0 +1,5 @@
+Gabor Daniel Balogh got his MSc in 2018 in Computer Science Engineering from
+Pazmany Peter Catholic University ITK. Currently he is doing his PhD at PPCU
+ITK in computer engineering under the supervision Istvan Zoltan Reguly. His
+thesis focuses on the automatic mapping of unstructured mesh applications to
+GPUs with OpenMP with the OP2 DSL.

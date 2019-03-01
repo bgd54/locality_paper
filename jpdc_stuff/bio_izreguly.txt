@@ -1,0 +1,5 @@
+Istvan Reguly is a researcher at PPCU ITK, focusing on high-level programming
+approaches in high performance scientific computing. He is a developer of the
+OP2 and OPS domain specific languages designed for structured and unstructured
+mesh computations. He was previously a PostDoc at the University of Oxford, he
+holds a PhD and MSc from PPCU ITK.

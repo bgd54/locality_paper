@@ -1,0 +1,5 @@
+András Attila Sulyok got his MSc in 2018 in Computer Science Engineering from
+Pázmány Péter Catholic University, Faculty of Information Technology and
+Bionics. Currently he is pursuing his PhD there. His research interests
+include automatic mapping of mesh applications to GPUs with the OPS/OP2 DSL
+family; his supervisor is István Zoltán Reguly.
