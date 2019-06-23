@@ -121,8 +121,8 @@ Reordering & \multicolumn{2}{c|}{none} & GPS & partition &
 \multicolumn{2}{c|}{none} & \multicolumn{2}{c||}{partition} & none\\\hline
 Data layout &    AOS      &   SOA     &     SOA      &    SOA & AOS      &   SOA 
     &     AOS      &    SOA & SOA\\\hline
-Bandwidth (GB/s)&  $71$ & $94$ &  $105$&  $67$&    $ 212$ &   $ 227$ &      $ 
-270$ &   $ 225$ & $ 233$\\\hline
+Bandwidth (GB/s)&  $72$ & $94$ &  $106$&  $66$&    $ 211$ &   $ 215$ &
+$ 228$ &   $ 239$ & $ 233$\\\hline
 Runtime (ms) & $6.12$ & $4.65$ & $4.15$ & $6.64$ & $2.07$ & $2.03$ & $1.92$ & 
 $1.83$ & $1.91$\\\hline
 Achieved Occupancy&  $0.63$ &  $0.45$ &      $0.45$&            $0.45$&    
@@ -134,7 +134,7 @@ Global Memory Write Transactions& \num{14007}k & \num{14737}k & \num{13773}k&
 \num{20733}k& \num{5807}k  & \num{57883}k & \num{3397}k  & \num{3669}k & 
 \num{6384}k\\\hline
 Number of (Block) Colours&  $5$&  $5$ &      $5$ &            $7$&    $       4$ 
-&   $       5$ &      $       8$ &   $       8$ &   $       5$\\\hline
+&   $       4$ &      $       8$ &   $       8$ &   $       5$\\\hline
 Number of Thread Colours&-&-&-&-&    $       3$ &   $       3$ &      $       4$ 
 &   $       4$ &   $       3$\\\hline
 Reuse Factor&-&-&-&-&    $       2$ &   $       2$ &      $     3.6$ &   $     
@@ -189,12 +189,17 @@ illustrated by Figure \ref{fig:airfoil_speedup_large} that shows the relative
 speedup compared to the original OP2 version (its low-level metrics are detailed 
 in the final column of Table~\ref{tab:airfoil_counters_glob}). In this case, the 
 original version also used the shared memory approach, so the performance gains 
-are caused by the reordering. In the original version $56\%$ of the total time 
-is spent in \texttt{res\_calc}, therefore the achieved $20\%$ speedup on 
-\texttt{res\_calc} causes about $10\%$ speedup on the whole application. 
-The useful bandwidth of the best performing version of \texttt{res\_calc} 
- reached $55\%$ of the peak stream bandwidth of the P100 GPU. %Although the number 
-% of block colors increased with reordering, we believe that this is due to the 
+are caused by the reordering. In the original version (hierarchical coloring, SOA
+layout) $56\%$ of the total time is spent in \texttt{res\_calc}. The best original
+version used the SOA data layout, with reordering we achieved $19\%$ speedup on
+\texttt{res\_calc} with AOS layout.
+However with AOS layout we lose performance in direct kernels, therefore regarding
+the whole application one can reach better performance with the SOA layout.
+The best performing setting of airfoil reached about $3.3\%$ speedup on the whole 
+application. The useful bandwidth of the best performing version of 
+\texttt{res\_calc} (our implementation) reached $55\%$ of the peak stream bandwidth
+of the P100 GPU. 
+%Although the number of block colors increased with reordering, we believe that this is due to the 
 % problem size, where there are too few blocks of the of the same color to 
 % saturate the GPU. 
 
@@ -229,11 +234,12 @@ cells with hierarchical colouring, on Volta architecture.}
 
 Similar results were obtained on the newer Volta GPUs (V100) as illustrated in 
 Figure~\ref{fig:airfoil_bw-vs-bs_hier_large_volta}). The absolute value of the
-bandwidths are (understandably) higher. On the V100, we achieved $28\%$ 
+bandwidths are (understandably) higher. On the V100, AOS achieved $28\%$ 
 speedup in the kernel compared to the original code with $446$ GB/s bandwidth 
-($60\%$ of the peak bandwidth). Since \texttt{res\_calc} takes around $54\%$ of 
-the total run time in the original code this speedup results in $14\%$ 
-speedup on the whole application.
+($60\%$ of the peak bandwidth), but the it still lacks behind SOA regarding the
+whole application. The best SOA version achieved $21\%$ speedup. Since 
+\texttt{res\_calc} takes around $54\%$ of the total run time this speedup lead 
+to $11\%$ performance increase on the whole application.
 
 
 \subsubsection{Volna}
@@ -246,7 +252,7 @@ and is converted to use the OP2 library~\cite{op2-volna2018}. Volna spends
 most time in three kernels: \texttt{computeFluxes}, \texttt{SpaceDiscretization} 
 and \texttt{NumericalFluxes}. Out of these, we focus on the 
 \texttt{SpaceDiscretization} kernel that iterates on edges accessing data 
-indirectly on cells, 60\% of total execution time is spent in this kernel. In 
+indirectly on cells, $60\%$ of total execution time is spent in this kernel. In 
 each iteration, \texttt{SpaceDiscretization} reads 1 and increments 4 float 
 values from each of the 2 indirectly accessed cells, and reads 7 float and 1 
 integer values directly. A notable difference in Volna is that the execution 
@@ -295,13 +301,18 @@ can be better hidden by running warps from other blocks.
 \end{figure}
 
 As can be seen in Figure \ref{fig:volna_speedup}, the locality exploiting 
-optimizations makes the kernel $20\%$ faster than the original OP2 version. The 
-$20\%$ performance gain in \texttt{SpaceDiscretization} results in a $6\%$ 
-increase to the whole application. The useful bandwidth also increases and 
-reached $30\%$ of the peak stream bandwidth of the P100 GPU. On the V100, the 
-performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth). Which 
-means a $18\%$ speedup on the kernel and $5\%$ speedup on the whole
-application compared to the original.
+optimizations makes the kernel $20\%$ faster than the original OP2 version.
+Again the best performance for \texttt{SpaceDiscretization} reached with AOS 
+layout which is not optimal for the whole application and the best total performance
+can be reached with SOA layout. \texttt{ComputeFluxes} also benefits significantly from these optimizations since this kernel also iterates on the edges and read data from cells. We experienced $5\%$ speed increase in \texttt{ComputeFluxes}.
+The increased speed of the two kernel results in a $13\%$ increase to the whole
+application. The useful bandwidth also increases and reached $30\%$ of the peak
+stream bandwidth of the P100 GPU.
+
+On the V100, the performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth).
+Which means a $18\%$ (AOS) and $11\%$(SOA) speedup on \texttt{SpaceDiscretization}
+while the SOA version reached $10\%$ increase on \texttt{ComputeFluxes} and $8\%$
+speedup on the whole application compared to the original.
 
 %XXX: make this table look more like the airfoil one
 
@@ -359,20 +370,18 @@ GPS reordering and partitioning (part.)}
 
 
 \subsubsection{BookLeaf}
-\noindent The third application we explore is BookLeaf. It is a 2D unstructured 
-mesh Lagrangian hydrodynamics application from the UK Mini-App Consortium 
-\cite{uk-mac}. It uses a low order finite element method with an arbitrary 
-Lagrangian-Eulerian method.  Bookleaf is written entirely in Fortran 90 and has 
-been ported to use the OP2 API and library. Bookleaf has a large number of 
-kernels with different access patterns such as indirect increments similar to 
-increments inside \texttt{res\_calc} in Airfoil. For benchmarking we used the 
-SOD test case with a mesh of 4 million cells. The top three, most 
-time consuming kernels are \texttt{getq\_christiensen1}, 
-\texttt{getacc\_scatter}, and \texttt{gather}. Out of these kernels, 
-(\texttt{getacc\_scatter}) has indirect increments, iterating on cells and 
-incrementing data indirectly on vertices. This kernel reads 17 double values 
-directly, and increments 4 double values on each of the 4 indirectly accessed 
-nodes in each iteration.
+\noindent The third application we explore is BookLeaf. It is a 2D unstructured
+mesh Lagrangian hydrodynamics application from the UK Mini-App Consortium
+\cite{uk-mac}. It uses a low order finite element method with an arbitrary
+Lagrangian-Eulerian method.  BookLeaf is written entirely in Fortran 90 and has
+been ported to use the OP2 API and library. BookLeaf has a large number of
+kernels with different access patterns such as indirect increments similar to
+increments inside \texttt{res\_calc} in Airfoil. For benchmarking we used the
+SOD test case with a mesh of 4 million cells. The top time consuming kernel with
+indirect increments is \texttt{getacc\_scatter}, which iterates on cells while
+incrementing data indirectly on vertices, $6\%$ of total execution time is spent
+in this kernel. This kernel reads 17 double values directly, and increments 4
+double values on each of the 4 indirectly accessed nodes in each iteration.
 
 Runtime performance of BookLeaf and specifically the low-level performance of 
 the \texttt{getacc\_scatter} kernel are detailed in Figures
@@ -383,19 +392,20 @@ now leads to the variations in performance for different block sizes. With
 partitioning, the number of thread colors increases from $2$ to $5$, this
 leads to increased stalls from synchronizations: from $9\%$ to $20\%$, while
 the reuse factor increases (from $2$ to $3.5$). This is comparable to 
-that of Airfoil, and explains the smaller increase in performance (only $9\%$, 
+that of Airfoil, and explains the smaller increase in performance (only $15\%$, 
 compared to the $19\%$ increase in Airfoil). The higher data reuse leads to 
 $14\%$ and $41\%$ decrease of the number of global transactions, for reads and 
 writes, respectively. Such a large difference between reads and writes is also 
 due to \texttt{getacc\_scatter} having no indirect reads, similar to 
 like \texttt{SpaceDiscretization} in Volna. 
 
-The best performance we achieved with \texttt{getacc\_scatter} ($1.09\times$ 
-speedup) results in about $2\%$ performance increase for the the whole 
+The best performance we achieved with \texttt{getacc\_scatter} ($1.15\times$ 
+speedup) results in about $1\%$ performance increase for the the whole 
 application. The useful bandwidth also increased and reached $83\%$ of the peak 
-stream bandwidth of the P100 GPU. On the V100, the performance of the kernel was 
-$631$ GB/s ($85\%$ of the peak bandwidth) which results in $3\%$ runtime speedup 
-on the whole application compared to the original.
+stream bandwidth of the P100 GPU.
+On the V100, the performance of the kernel was $631$ GB/s ($85\%$ of the peak
+bandwidth) which results in $0.5\%$ runtime speedup on the whole application
+compared to the original.
 
 \begin{figure}[Htbp]
 \centering
