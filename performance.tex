@@ -477,12 +477,16 @@ from synchronization on the partitioned mesh) couldn't be hidden: there were no
 warps from other blocks to be scheduled in place of the stalled ones because
 there was only one block running on each multiprocessor. The difference in 
 achieved occupancy also means that the SoA version with two blocks 
-per multiprocessor gives better performance. Nevertheless, as shown in Figure 
-\ref{fig:lulesh_speedup}, the hierarchical coloring algorithm performs 
-significantly better (giving a $75\%$ speedup) than the original two-step 
-implementation, and also uses much less memory. Although the original requires 
-less synchronization, the resulting warp divergence also cannot be hidden if the 
-occupancy is this low.
+per multiprocessor gives better performance.
+
+The original implementation used either atomics or helper arrays as a means of
+avoiding data races. As shown in Figure \ref{fig:lulesh_speedup}, the
+hierarchical coloring algorithm performs significantly better (giving a $49\%$
+speedup) than the original two-step implementation (and also uses much less
+memory), but it is worse than the original atomics implementation by $17\%$.
+
+% Although the original requires less synchronization, the resulting warp
+% divergence also cannot be hidden if the occupancy is this low.
  
 \begin{figure}[Htbp]
 \centering
@@ -492,25 +496,33 @@ with $4913000$ cells using hierarchical colouring.}
   \label{fig:lulesh_bw-vs-bs_hier}
 \end{figure}
 
-In the original application version $37\%$ out of the total time is spent in 
-the \texttt{IntagrateStressForElems} kernel, therefore the achieved $75\%$ 
-speedup on the kernel gives about $28\%$ speedup on the whole application. The
-useful bandwidth in case of the best version of \texttt{IntegrateStressForElems}
-reached $20\%$ of the peak stream bandwidth on the P100 GPU. On the V100, 
-we achieved $84\%$ speedup for this kernel compared to the
-original with $273$ GB/s bandwidth ($37\%$ of the peak bandwidth). In the
-original version $35\%$ of the total time is spent in 
-\texttt{IntegrateStressForElems}, therefore the achieved kernel speedup 
-results in about $29\%$ speedup on the whole application.
+In the original application version $37\%$ out of the total time is spent in
+the \texttt{IntagrateStressForElems} kernel, therefore the achieved $49\%$
+speedup on the kernel over the two-step implementation gives about $11\%$ (for
+our best result) or $8\%$ (for our partitioned version) speedup on the whole
+application. This was measured by reading back the reordered mesh in the
+original code for all kernels. The useful bandwidth in case of the best version
+of \texttt{IntegrateStressForElems} reached $35\%$ of the peak stream bandwidth
+on the P100 GPU.
+
+On the V100, we achieved $51\%$ speedup for this kernel compared to the original
+two-step implementation with $270$ GB/s bandwidth ($36\%$ of the peak
+bandwidth). In the original version $38\%$ of the total time is spent in
+\texttt{IntegrateStressForElems}, therefore this achieved kernel speedup results
+in about $16\%$ speedup on the whole application. Again, the atomics version
+performed best with a bandwidth of $561$ GB/s ($76\%$ of peak bandwidth), two
+times faster than our version.
 
 \begin{figure}[Htbp]
 \centering
 \includegraphics[width=10cm]{fig/lulesh_speedup.eps}
-\caption{LULESH's \texttt{IntegrateStressForElems} kernel speedup compared to 
-the original (gathering) code, done on a mesh with $4913000$ cells. The block
-sizes are shown in parentheses, the reordering algorithms are: the original
-reordering (NR), GPS reordering and partitioning 
-(part.)} \label{fig:lulesh_speedup}
+\caption{LULESH's \texttt{IntegrateStressForElems} kernel speedup compared to
+  the original (gathering) code, done on a mesh with $4913000$ cells. The block
+  sizes are shown in parentheses, the reordering algorithms are: the original
+  reordering (NR), GPS reordering and partitioning (part.) The last bar shows
+  the relative performance of the original code with the helper array
+  approach.}
+\label{fig:lulesh_speedup}
 \end{figure}
 
 \begin{table}[Htbp]
@@ -525,30 +537,30 @@ reordering (NR), GPS reordering and partitioning
       \hline
       Data layout &    AOS      &   SOA     &     AOS      &    SOA & SOA\\
       \hline
-                               Bandwidth (GB/s) &   $ 124$ &   $ 168$ &   $ 129$ 
-&   $ 147$ & $97$\\
-                               Runtime (ms)     &   $5.45$ & $4.00$ & $4.98$ & 
-$4.34$ & $6.98$ \\
+                               Bandwidth (GB/s) &   $ 80$ &   $ 172$ &   $ 83$ 
+&   $ 157$ & $97$\\
+                               Runtime (ms)     &   $8.48$ & $3.90$ & $8.10$ & 
+$4.31$ & $6.98$ \\
                              Achieved Occupancy &   $0.15$ &   $0.29$ &   $0.15$ 
 &   $0.30$ & $0.24$\\
-        Global Memory Read Transactions (total) &   \num{33572}k & \num{35408}k 
-&   \num{22888}k &   \num{25027}k  & \num{16072}k\\
-       Global Memory Write Transactions (total) &   \num{12673}k & \num{12704}k 
-&   \num{ 8047}k &   \num{ 8701}k  & \num{32689}k\\
+        Global Memory Read Transactions (total) &   \num{33546}k & \num{35395}k 
+&   \num{22883}k &   \num{25006}k  & \num{16072}k\\
+       Global Memory Write Transactions (total) &   \num{12674}k & \num{12706}k 
+&   \num{ 8052}k &   \num{ 8703}k  & \num{32689}k\\
                         Number of Block Colours &   $       4$ &   $       4$ & 
 $      15$ &   $      15$ & - \\
                        Number of Thread Colours &   $       4$ &   $       4$ & 
-$    11.6$ &   $    11.6$  & -\\
+$    9.8$ &   $    9.8$  & -\\
                                    Reuse Factor &   $     2.6$ &   $     2.6$ & 
 $     4.8$ &   $     4.8$ & -\\
           Issue Stall Reasons (Synchronization) &   $  13\%$ &   $  19\%$ &   $ 
-39\%$ &   $  42\%$  & $0\%$\\
-             Issue Stall Reasons (Data Request) &   $  64\%$ &   $  56\%$ &   $ 
-35\%$ &   $  31\%$  & $26\%$\\
+36\%$ &   $  39\%$  & $0\%$\\
+             Issue Stall Reasons (Data Request) &   $  63\%$ &   $  56\%$ &   $ 
+38\%$ &   $  34\%$  & $26\%$\\
                       Average Cache Lines/Block &   $     744$ &   $     747$ & 
 $     427$ &   $     474$  & -\\
-                      Warp Execution Efficiency &   $  98\%$ &   $  97\%$ &   $ 
-91\%$ &   $  90\%$ & $100\%$\\
+                      Warp Execution Efficiency &   $  98\%$ &   $  98\%$ &   $ 
+94\%$ &   $  93\%$ & $100\%$\\
       \hline
       Block size & \multicolumn{4}{c||}{$320$} & $64$\\
 
@@ -639,12 +651,14 @@ bandwidth.} \label{fig:mini_aero_bw_small-cache}
 
 The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
-outperformed both with a 75\% speedup (Figure 
-\ref{fig:mini_aero_speedup_small-cache}). In the original version $22\%$ of the 
-total time is spent in \texttt{compute\_face\_flux}, therefore the achieved 
-$75\%$ kernel speedup provides about $10\%$ speedup for the whole application. 
-The useful bandwidth in case of the best version of 
-\texttt{compute\_face\_flux} ($168$ GB/s) reached $34\%$ of the peak stream 
+outperformed both with a 75\% speedup (Figure
+\ref{fig:mini_aero_speedup_small-cache}). In the original version $22\%$ of the
+total time is spent in \texttt{compute\_face\_flux}, therefore the achieved
+$75\%$ kernel speedup provides about $10\%$ speedup for the whole application.
+When measuring on the reordered mesh for all kernels (substituting the above
+speedup for \texttt{compute\_face\_flux}), the performance actually decreases to
+$84\%$ of the original.  The useful bandwidth in case of the best version of
+\texttt{compute\_face\_flux} ($168$ GB/s) reached $34\%$ of the peak stream
 bandwidth of the P100 GPU.
 
 \begin{figure}[Htbp]
@@ -654,7 +668,7 @@ bandwidth of the P100 GPU.
 the original code that was using atomic adds, on a mesh with $6242304$ faces. 
 The shared memory was only used to cache the increments, reducing the need 
 for large shared memory size. The last bar shows the relative performance of 
-the original code with the helper array approach.}  
+the original code with the helper array approach.}
 \label{fig:mini_aero_speedup_small-cache}
 \end{figure}
 
@@ -709,16 +723,19 @@ details the measured performance of the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
-On Volta, we achieved $157\%$ speedup in the kernel compared to the
-original code with $268$ GB/s bandwidth ($36\%$ of the peak bandwidth). In the
-original version $27\%$ of the total time is spent 
-in \texttt{compute\_face\_flux}, therefore the kernel speedup provides about
-$20\%$ speedup for the whole application.
+On Volta, we achieved $151\%$ (compared to the atomic version) and $86\%$
+(compared to the two-step version) speedups in the kernel $268$ GB/s bandwidth
+($36\%$ of the peak bandwidth). In the original version $19\%$ of the total time
+is spent in \texttt{compute\_face\_flux}, therefore the kernel speedup
+provides about $13\%$ and $10\%$ speedups for the whole application (compared
+to the atomic and the two-step versions, respectively).
 
-
+When measured with all kernels reordered, the performance again decreases, by
+$27\%$ compared to the original two-step implementation.
 
 
 \subsubsection{Analysis of structured meshes}
+\label{analysis-of-structured-meshes}
 
 \noindent Recalling that the meshes of miniAero and LULESH are actually 
 structured meshes, generated by the code itself allows us to use their 
