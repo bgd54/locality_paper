@@ -27,7 +27,7 @@ common in finite volume and finite element applications over
 unstructured-meshes: e.g. when updating state variables in cells using fluxes 
 across faces, or when doing matrix assembly. The parallelization of indirect 
 loops are non-trivial as the exact elements leading to data races cannot be 
-determined from compile time-information, given that they are driven by the 
+determined from compile time information, given that they are driven by the 
 structure of the mesh in general and the mapping tables in particular, which are 
 read in during run-time. 
 

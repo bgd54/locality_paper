@@ -68,7 +68,7 @@ in the case of AoS).
 Four types of loops are supported: one serial and three parallel. The
 parallelisations are done by (1) OpenMP on the CPU, (2) CUDA with global
 colouring and (3) CUDA using the shared memory approach with hierarchical
-colouring on the GPU. The CPU versions are not optimised and are only there for
+colouring on the GPU. The CPU versions are not optimized and are only there for
 testing and verification purposes. The user of the library can choose which of
 these to apply.
 
@@ -76,7 +76,7 @@ The user kernel consists of two main levels. In the first, the pointers to the
 data arrays are acquired, typecast and the result is written back into global
 (GPU or CPU) memory. This is similar in the differently parallelised loops (e.g.
 there is usually no difference between the serial and the OpenMP versions), but
-there are small variations in the use of GPU shared memory, the synchronisation
+there are small variations in the use of GPU shared memory, the synchronization
 steps and the calculation of the loop variable. (By loop variable, we mean the
 index from the from-set.) In our current implementation, the user creates this
 level from provided templates, but this can be easily automated by means of a
@@ -95,8 +95,8 @@ measurements. The layout of the mappings is AoS for all the parallelisation
 methods except hierarchical colouring.
 
 In the case of OpenMP and global colouring, the parallel execution is
-synchronised by the library using multiple kernel launches. The hierarchical
-colouring has some additional synchronisation steps, as described by Algorithm
+synchronized by the library using multiple kernel launches. The hierarchical
+colouring has some additional synchronization steps, as described by Algorithm
 \ref{code:shared} in Section \ref{shared-memory-approach}.
 
 \subsection{Execution planning}
@@ -106,7 +106,7 @@ used: global colouring is used for the OpenMP and the first CUDA
 parallelisation, while hierarchical or two-layer colouring is used for the
 shared memory approach.
 
-The global colouring is a direct generalisation of the greedy graph colouring
+The global colouring is a direct generalization of the greedy graph colouring
 algorithm: for all elements of the from-set, its colour will be one of those
 that are used but none of its corresponding indirect points have.
 

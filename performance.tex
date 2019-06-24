@@ -162,7 +162,7 @@ further by placing data points that are accessed in consecutive threads close
 to each other. Now there is a $19\%$ reduction in global read transactions 
 compared to the baseline AoS. Given that the partition based reordering is 
 primarily intended for the hierarchical coloring, it does not improve on the 
-renumbering optimizations. The reason being that partitioning groups threads 
+Global coloring. The reason being that partitioning groups threads 
 that access the same data together, while the global coloring puts them into 
 different kernel launches, eliminating any chance for spatial reuse.
 
@@ -309,10 +309,10 @@ The increased speed of the two kernels results in a $13\%$ increase for the whol
 application. The useful bandwidth also increases and reached $30\%$ of the peak
 stream bandwidth of the P100 GPU.
 
-On the V100, the performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth).
-Which means a $18\%$ (AOS) and $11\%$(SOA) speedup on \texttt{SpaceDiscretization}
-while the SOA version reached $10\%$ increase on \texttt{ComputeFluxes} and $8\%$
-speedup on the whole application compared to the original.
+On the V100, the performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth) with $18\%$ (AOS) speedup. Regarding the whole application SOA 
+achieved $11\%$ speedup on \texttt{SpaceDiscretization} while improving
+\texttt{ComputeFluxes} with $10\%$ as well leading to a $8\%$ speedup on the
+whole application compared to the original.
 
 %XXX: make this table look more like the airfoil one
 
@@ -723,7 +723,7 @@ details the measured performance of the original code.}
   \label{tab:mini_aero_counters_hier}
 \end{table}
 
-On Volta, we achieved $151\%$ (compared to the atomic version) and $86\%$
+On Volta, we achieved $158\%$ (compared to the atomic version) and $92\%$
 (compared to the two-step version) speedups in the kernel $268$ GB/s bandwidth
 ($36\%$ of the peak bandwidth). In the original version $19\%$ of the total time
 is spent in \texttt{compute\_face\_flux}, therefore the kernel speedup

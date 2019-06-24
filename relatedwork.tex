@@ -27,17 +27,17 @@ The adoption of GPUs for these kind of computations has already led to
 considerable speedups over traditional CPU architectures due to the 
 massive parallelism available on GPUs~\cite{Reguly2015, ELSEN200810148, 
 cohen2009fast}. Other notable works have further looked at improving 
-performance. Remacle et al. \cite{remacle2016gpu}, explores efficiently solving 
+performance. Remacle et al.\ \cite{remacle2016gpu}, explores efficiently solving 
 elliptic problems on unstructured hexahedral meshes on GPUs. They use shared 
 memory for improving data locality, but advanced techniques, such as reordering 
-and partitioning are not utilized. Work done by Castro et al. 
+and partitioning are not utilized. Work done by Castro et al.\ 
 \cite{shallow_water} on implementing path-conservative Roe type high-order 
 finite volume schemes to simulate shallow flows uses auxiliary accumulators to 
-avoid data races while indirectly incrementing. Wu et al. 
+avoid data races while indirectly incrementing. Wu et al.\ 
 \cite{wu2013complexity} introduce caching using the shared memory with 
 partitioning (clustering), but do not use coloring. Instead they use a 
 duplication method similar to that of LULESH and miniAero, as described below. 
-Fu et al. \cite{fu2014architecting} also create contiguous patches (blocks) in 
+Fu et al.\ \cite{fu2014architecting} also create contiguous patches (blocks) in 
 the mesh to be loaded into shared memory, although they partition the nodes (the 
 to-set) but not the elements (the from-set of the mapping). Furthermore, they do 
 not load all data into shared memory, only what is inside the patch. Writing the 
