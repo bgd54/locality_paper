@@ -301,11 +301,11 @@ can be better hidden by running warps from other blocks.
 \end{figure}
 
 As can be seen in Figure \ref{fig:volna_speedup}, the locality exploiting 
-optimizations makes the kernel $20\%$ faster than the original OP2 version.
-Again the best performance for \texttt{SpaceDiscretization} reached with AOS 
-layout which is not optimal for the whole application and the best total performance
-can be reached with SOA layout. \texttt{ComputeFluxes} also benefits significantly from these optimizations since this kernel also iterates on the edges and read data from cells. We experienced $5\%$ speed increase in \texttt{ComputeFluxes}.
-The increased speed of the two kernel results in a $13\%$ increase to the whole
+optimizations make the kernel $20\%$ faster than the original OP2 version.
+Again the best performance for \texttt{SpaceDiscretization} was reached with hte AOS 
+layout, which is not optimal for the whole application -- overall the best total performance
+can be reached with SOA layout. Notably, \texttt{ComputeFluxes} also benefits significantly from the locality optimization, since this kernel also iterates on the edges and read data from cells; we experienced $5\%$ speed increase in \texttt{ComputeFluxes}.
+The increased speed of the two kernels results in a $13\%$ increase for the whole
 application. The useful bandwidth also increases and reached $30\%$ of the peak
 stream bandwidth of the P100 GPU.
 
