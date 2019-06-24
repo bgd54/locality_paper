@@ -126,12 +126,12 @@ $ 228$ &   $ 239$ & $ 233$\\\hline
 Runtime (ms) & $6.12$ & $4.65$ & $4.15$ & $6.64$ & $2.07$ & $2.03$ & $1.92$ & 
 $1.83$ & $1.91$\\\hline
 Achieved Occupancy&  $0.63$ &  $0.45$ &      $0.45$&            $0.45$&    
-$0.44$ &   $0.52$ &      $0.59$ &   $0.42$ & $0.42$\\\hline
+$0.44$ &   $0.43$ &      $0.44$ &   $0.43$ & $0.42$\\\hline
 Global Memory Read Transactions&  \num{52424}k & \num{45781}k & \num{41246}k& 
-\num{66775}k& \num{21142}k & \num{21192}k & \num{13964}k & \num{14406}k& 
+\num{66775}k& \num{21142}k & \num{21275}k & \num{13885}k & \num{14325}k& 
 \num{21866}k\\\hline
 Global Memory Write Transactions& \num{14007}k & \num{14737}k & \num{13773}k& 
-\num{20733}k& \num{5807}k  & \num{57883}k & \num{3397}k  & \num{3669}k & 
+\num{20733}k& \num{5807}k  & \num{5871}k & \num{3429}k  & \num{3628}k & 
 \num{6384}k\\\hline
 Number of (Block) Colours&  $5$&  $5$ &      $5$ &            $7$&    $       4$ 
 &   $       4$ &      $       8$ &   $       8$ &   $       5$\\\hline
@@ -139,10 +139,10 @@ Number of Thread Colours&-&-&-&-&    $       3$ &   $       3$ &      $       4$
 &   $       4$ &   $       3$\\\hline
 Reuse Factor&-&-&-&-&    $       2$ &   $       2$ &      $     3.6$ &   $     
 3.6$ &   $       2$\\\hline
-Issue Stall Reasons (Synchronization)&-&-&-&-&    $  11\%$ &   $   9\%$ &      $ 
- 14\%$ &   $  14\%$ &   $  14\%$\\\hline
-Issue Stall Reasons (Data Request)&-&-&-&-&    $  69\%$ &   $  68\%$ &      $  
-61\%$ &   $  63\%$ &   $  55\%$\\\hline
+Issue Stall Reasons (Synchronization)&-&-&-&-&    $  11\%$ &   $   10\%$ &      $ 
+ 15\%$ &   $  14\%$ &   $  14\%$\\\hline
+Issue Stall Reasons (Data Request)&-&-&-&-&    $  69\%$ &   $  70\%$ &      $  
+62\%$ &   $  64\%$ &   $  55\%$\\\hline
 Block Size &\multicolumn{8}{c||}{$480$} &   $128$\\\hline
 \end{tabular}
 }
@@ -309,12 +309,10 @@ The increased speed of the two kernels results in a $13\%$ increase for the whol
 application. The useful bandwidth also increases and reached $30\%$ of the peak
 stream bandwidth of the P100 GPU.
 
-On the V100, the performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth) with $18\%$ (AOS) speedup. Regarding the whole application SOA 
+On the V100, the performance of the kernel was $462$ GB/s ($62\%$ of the peak bandwidth) with $18\%$ (AOS) speedup compared to the original implementation. Running the whole application with the reordered mesh, SOA 
 achieved $11\%$ speedup on \texttt{SpaceDiscretization} while improving
-\texttt{ComputeFluxes} with $10\%$ as well leading to a $8\%$ speedup on the
-whole application compared to the original.
-
-%XXX: make this table look more like the airfoil one
+\texttt{ComputeFluxes} with $10\%$ as well, leading to a $8\%$ speedup on the
+whole application compared to the original implementation.
 
 
 \begin{table}[Htbp]
@@ -652,12 +650,7 @@ bandwidth.} \label{fig:mini_aero_bw_small-cache}
 The original Kokkos implementation either used atomic adds or the two-step
 gathering approach depending on compilation parameters. Our implementation
 outperformed both with a 75\% speedup (Figure
-\ref{fig:mini_aero_speedup_small-cache}). In the original version $22\%$ of the
-total time is spent in \texttt{compute\_face\_flux}, therefore the achieved
-$75\%$ kernel speedup provides about $10\%$ speedup for the whole application.
-When measuring on the reordered mesh for all kernels (substituting the above
-speedup for \texttt{compute\_face\_flux}), the performance actually decreases to
-$84\%$ of the original.  The useful bandwidth in case of the best version of
+\ref{fig:mini_aero_speedup_small-cache}). The useful bandwidth in case of the best version of
 \texttt{compute\_face\_flux} ($168$ GB/s) reached $34\%$ of the peak stream
 bandwidth of the P100 GPU.
 
@@ -725,13 +718,7 @@ details the measured performance of the original code.}
 
 On Volta, we achieved $158\%$ (compared to the atomic version) and $92\%$
 (compared to the two-step version) speedups in the kernel $268$ GB/s bandwidth
-($36\%$ of the peak bandwidth). In the original version $19\%$ of the total time
-is spent in \texttt{compute\_face\_flux}, therefore the kernel speedup
-provides about $13\%$ and $10\%$ speedups for the whole application (compared
-to the atomic and the two-step versions, respectively).
-
-When measured with all kernels reordered, the performance again decreases, by
-$27\%$ compared to the original two-step implementation.
+($36\%$ of the peak bandwidth).
 
 
 \subsubsection{Analysis of structured meshes}
