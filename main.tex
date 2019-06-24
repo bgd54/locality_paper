@@ -109,7 +109,7 @@ increment data-access patterns. We build on well known techniques such as
 data-layouts (AoS and SoA), graph bandwidth minimizing algorithms, global and 
 hierarchical coloring approaches for exploring efficient execution strategies. 
 A novel reordering algorithm which uses k-way recursive partitioning, together 
-with the use of GPU share-memory implementing a hierarchical coloring method is 
+with the use of GPU shared memory implementing a hierarchical coloring method is 
 designed to significantly improve data reuse within CUDA thread blocks.
 
 The new optimizations are then applied to several well established unstructured
@@ -139,8 +139,8 @@ block has, the more synchronizations it will need, the latency of which can be
 hard to hide when there are few eligible warps.
 
 The locality exploiting optimizations detailed in this paper enable us to 
-improve performance of indirect kernels by $20\%$ on Airfoil, $20\%$ on 
-Volna, $9\%$ on Bookleaf, $75\%$ on Lulesh and $75\%$ on miniAero over the 
+improve performance of indirect kernels by $19\%$ on Airfoil, $20\%$ on 
+Volna, $15\%$ on Bookleaf, $75\%$ on Lulesh and $75\%$ on miniAero over the 
 original implementations, on the GPUs tested. These results advances the state 
 of the art, demonstrating that the algorithmic patterns used in most current 
 implementations (particularly in case of US DoE codes represented by 
